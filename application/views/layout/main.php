@@ -14,6 +14,13 @@ $inventory_nav = array(
 	array('label' => 'Kategori Bahan', 'icon' => 'diagram-3', 'url' => 'inventory/categories', 'perm' => NULL),
 	array('label' => 'Laporan Inventory', 'icon' => 'bar-chart-line', 'url' => 'inventory/reports', 'perm' => 'report.inventory'),
 );
+$purchase_nav = array(
+	array('label' => 'Purchase Order', 'icon' => 'cart3', 'url' => 'purchase/orders', 'perm' => NULL),
+	array('label' => 'Penerimaan Barang', 'icon' => 'truck', 'url' => 'purchase/receipts', 'perm' => NULL),
+	array('label' => 'Invoice Supplier', 'icon' => 'receipt', 'url' => 'purchase/invoices', 'perm' => NULL),
+	array('label' => 'Pembayaran', 'icon' => 'credit-card', 'url' => 'purchase/payments', 'perm' => NULL),
+	array('label' => 'Laporan Pembelian', 'icon' => 'graph-up', 'url' => 'purchase/reports', 'perm' => 'report.inventory'),
+);
 $admin_nav = array(
 	array('label' => 'User', 'icon' => 'people', 'url' => 'admin/users', 'perm' => 'admin.users'),
 	array('label' => 'Role', 'icon' => 'person-badge', 'url' => 'admin/roles', 'perm' => 'admin.roles'),
@@ -59,8 +66,15 @@ $active = function ($url) use ($uri) {
 				<?php endforeach; ?>
 			<?php endif; ?>
 
+			<?php if (can('purchase.view')): ?>
+				<div class="nav-section">Pembelian</div>
+				<?php foreach ($purchase_nav as $item): if ($item['perm'] && ! can($item['perm'])) continue; ?>
+					<a class="nav-link <?= $active($item['url']) ?>" href="<?= site_url($item['url']) ?>"><i class="bi bi-<?= $item['icon'] ?>"></i> <?= e($item['label']) ?></a>
+				<?php endforeach; ?>
+			<?php endif; ?>
+
 			<div class="nav-section">Operasional</div>
-			<?php foreach (array('Pembelian' => 'cart3', 'Menu' => 'journal-richtext', 'POS & Penjualan' => 'cash-coin', 'Laporan Keuangan' => 'bar-chart') as $label => $icon): ?>
+			<?php foreach (array('Menu' => 'journal-richtext', 'POS & Penjualan' => 'cash-coin', 'Laporan Keuangan' => 'bar-chart') as $label => $icon): ?>
 				<span class="nav-link disabled" title="Dikerjakan di fase berikutnya"><i class="bi bi-<?= $icon ?>"></i> <?= e($label) ?> <small class="badge text-bg-secondary ms-auto">segera</small></span>
 			<?php endforeach; ?>
 

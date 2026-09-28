@@ -9,6 +9,9 @@ $sections = array(
 );
 ?>
 <div class="d-flex flex-wrap gap-2 mb-3">
+	<?php if (can('purchase.create') && (count($alerts['low']) + count($alerts['reorder'])) > 0): ?>
+		<a class="btn btn-sm btn-primary order-last ms-md-auto" href="<?= site_url('purchase/orders/create?reorder=1') ?>"><i class="bi bi-cart-plus"></i> Buat PO dari saran reorder</a>
+	<?php endif; ?>
 	<?php foreach ($sections as $k => $s): ?>
 		<a class="btn btn-sm btn-outline-<?= $s[1] ?>" href="#<?= $k ?>"><?= e($s[0]) ?> <span class="badge text-bg-<?= $s[1] ?>"><?= count($alerts[$k]) ?></span></a>
 	<?php endforeach; ?>

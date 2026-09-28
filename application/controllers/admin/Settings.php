@@ -11,7 +11,7 @@ class Settings extends MY_Controller {
 	protected $numeric = array(
 		'tax_rate', 'service_charge_rate', 'refund_auto_limit', 'refund_auto_minutes',
 		'refund_owner_limit', 'po_auto_limit', 'po_owner_limit', 'cash_variance_limit',
-		'expiry_alert_days', 'slow_moving_days', 'dead_stock_days',
+		'expiry_alert_days', 'slow_moving_days', 'dead_stock_days', 'invoice_match_tolerance', 'po_variance_flag',
 	);
 	protected $boolean = array('tax_enabled');
 

@@ -22,3 +22,8 @@ PRD_*.md
 .idea/
 .vscode/
 /vendor/
+
+# File privat (invoice, bukti bayar, surat jalan) - di luar document root
+/storage/*
+!/storage/.htaccess
+!/storage/index.html

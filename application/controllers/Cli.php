@@ -118,6 +118,8 @@ class Cli extends CI_Controller {
 			'expiry_alert_days'   => array('7', 'Peringatan bahan mendekati kedaluwarsa (hari sebelum)'),
 			'slow_moving_days'    => array('30', 'Bahan dianggap slow-moving jika tidak keluar selama (hari)'),
 			'dead_stock_days'     => array('60', 'Bahan dianggap dead stock jika tidak keluar selama (hari)'),
+			'invoice_match_tolerance' => array('1', 'Toleransi selisih invoice vs barang diterima (persen)'),
+			'po_variance_flag'    => array('5', 'Tandai PO jika nilai aktual berbeda dari PO lebih dari (persen)'),
 		);
 		foreach ($settings as $key => $s)
 		{

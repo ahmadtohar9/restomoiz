@@ -172,3 +172,21 @@ if ( ! function_exists('send_csv'))
 		exit;
 	}
 }
+
+if ( ! function_exists('file_url'))
+{
+	/** URL unduh lampiran privat (lihat controller Files). */
+	function file_url($path)
+	{
+		return site_url('files/view?path=' . rawurlencode($path));
+	}
+}
+
+if ( ! function_exists('terms_days'))
+{
+	/** Jumlah hari dari kode termin pembayaran (NET30 -> 30, COD -> 0). */
+	function terms_days($terms)
+	{
+		return preg_match('/^NET(\d+)$/', (string) $terms, $m) ? (int) $m[1] : 0;
+	}
+}

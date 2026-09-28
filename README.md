@@ -11,8 +11,9 @@ Aplikasi ini **berdiri sendiri** dan tidak berbagi kode, database, session, maup
 |------|-----|--------|
 | 1 | Fondasi & RBAC: login, user, role, permission matrix, custom permission, audit log, pengaturan | ✅ selesai |
 | 2 | Inventory: bahan baku, kategori bertingkat, supplier, stok masuk/keluar FIFO, stock opname, peringatan stok, laporan nilai/aging/slow-moving/dead stock | ✅ selesai |
-| 3 | Pembelian (PO, penerimaan barang, invoice & pembayaran supplier) | berikutnya |
-| 4–7 | Menu, POS, Refund & Settlement, Laporan keuangan | direncanakan |
+| 3 | Pembelian: PO dengan approval berjenjang, penerimaan barang (GR), invoice supplier dengan 3-way matching, pembayaran & verifikasi, laporan belanja/tren harga/kinerja supplier/aging hutang | ✅ selesai |
+| 4 | Menu: resep, COGS, harga, promo, barcode | berikutnya |
+| 5–7 | POS, Refund & Settlement, Laporan keuangan | direncanakan |
 
 ## Struktur
 
@@ -87,6 +88,17 @@ Di view:
 - Harga beli & nilai stok hanya terlihat oleh role dengan permission `inventory.view_cost` (Staff Dapur tidak).
 - Bahan/supplier/kategori yang sudah punya riwayat tidak bisa dihapus, hanya dinonaktifkan, supaya laporan tetap utuh.
 
+## Pembelian
+
+Alur: **PO** (draft → submit → approval) → **Penerimaan barang** (stok masuk FIFO) → **Invoice supplier** (3-way match) → **Pembayaran** (verifikasi).
+
+- **Approval berjenjang** (batas di Pengaturan): di bawah `po_auto_limit` otomatis disetujui; sampai `po_owner_limit` butuh 1 approval (`purchase.approve`); di atasnya butuh approval kedua dari Owner (`purchase.approve_owner`). PO yang ditolak kembali ke draft dengan alasan.
+- **Pemisahan tugas** (kecuali Admin): pembuat PO tidak bisa meng-approve PO-nya sendiri, approver level 2 harus orang lain dari level 1, dan pembayaran diverifikasi oleh orang lain dari yang menginput.
+- **Penerimaan barang** bisa sebagian. Jumlah yang berbeda dari sisa PO wajib diberi alasan, dan penerimaan melebihi sisa PO ditolak. Stok masuk dengan harga PO setelah diskon; pajak tidak dimasukkan ke nilai persediaan.
+- **3-way matching**: total invoice untuk satu PO dibandingkan dengan nilai barang yang diterima (termasuk diskon & pajak PO), dengan toleransi `invoice_match_tolerance`. Invoice yang tidak cocok hanya bisa disetujui dengan catatan alasan.
+- **Pembayaran** bisa sebagian. Jumlah yang bisa diajukan sudah dikurangi pembayaran yang masih menunggu verifikasi, jadi tidak bisa bayar dobel. Untuk kartu kredit hanya disimpan 4 digit terakhir dan kode otorisasi.
+- **Lampiran** (surat jalan, invoice, bukti bayar) disimpan di `storage/` di luar document root dan hanya bisa diunduh lewat `files/view` oleh user dengan `purchase.view`. Validasi file: gambar dengan `getimagesize()`, PDF dengan signature `%PDF-`.
+
 ## Keamanan
 
 - Password di-hash dengan `password_hash()` (bcrypt), dengan aturan minimal 8 karakter berisi huruf dan angka.
@@ -109,3 +121,6 @@ Beberapa hal di PRD diubah saat implementasi:
 | Role default tanpa Owner | Role *Owner* ditambahkan | Approval PO > 20 juta dan refund > 2 juta butuh Owner |
 | Valuasi FIFO/LIFO/Average | FIFO | PRD 2.1.3 memilih FIFO untuk bahan mudah rusak |
 | Notifikasi email stok minimum | Peringatan di dashboard & halaman Peringatan Stok | Email belum dikonfigurasi di server; bisa ditambahkan nanti |
+| Email ke approver / reminder hutang otomatis | Daftar tugas di dashboard (approval, barang datang, invoice, verifikasi, jatuh tempo) | Sama: email belum tersedia |
+| Jurnal akuntansi (Dr Inventory / Cr AP) | Belum ada modul GL; hutang dilacak lewat invoice & pembayaran | Modul keuangan di fase 7 |
+| Verifikasi pembayaran oleh Accounting | Oleh user `purchase.payment` yang berbeda dari penginput | Kontrol internal: input dan verifikasi dipisah |

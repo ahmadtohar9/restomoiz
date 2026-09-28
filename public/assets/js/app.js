@@ -203,3 +203,81 @@
 		});
 	});
 })();
+
+/* ---------- Pembelian ---------- */
+(function () {
+	'use strict';
+
+	var rp = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+
+	// Total PO + info level approval
+	var hint = document.getElementById('po-approval-hint');
+	if (hint) {
+		var form = hint.closest('form');
+		var auto = parseFloat(hint.getAttribute('data-auto'));
+		var owner = parseFloat(hint.getAttribute('data-owner'));
+		var update = function () {
+			var sub = 0;
+			form.querySelectorAll('.doc-line').forEach(function (r) {
+				var q = parseFloat(r.querySelector('.line-qty').value) || 0;
+				var c = parseFloat(r.querySelector('.line-cost').value) || 0;
+				sub += q * c;
+			});
+			var disc = parseFloat(form.querySelector('[name=discount_amount]').value) || 0;
+			var tax = parseFloat(form.querySelector('[name=tax_amount]').value) || 0;
+			var total = sub - disc + tax;
+			document.getElementById('po-grand').textContent = total ? rp.format(total) : '-';
+			hint.textContent = !total ? '' : (total < auto ? 'Otomatis disetujui saat submit'
+				: (total > owner ? 'Butuh approval Manajer + Owner' : 'Butuh approval Manajer'));
+		};
+		form.addEventListener('input', update);
+		form.addEventListener('change', update);
+		update();
+	}
+
+	// Form pembayaran: tampilkan field sesuai metode
+	var method = document.getElementById('method');
+	if (method && document.getElementById('payment-form')) {
+		var toggle = function () {
+			document.querySelectorAll('#payment-form .pm').forEach(function (el) {
+				el.style.display = el.classList.contains('pm-' + method.value) ? '' : 'none';
+			});
+		};
+		method.addEventListener('change', toggle);
+		toggle();
+	}
+
+	// Form invoice: cek kecocokan nilai secara langsung
+	var amount = document.getElementById('amount');
+	var check = document.getElementById('amount-check');
+	if (amount && check && amount.hasAttribute('data-expected')) {
+		var exp = parseFloat(amount.getAttribute('data-expected'));
+		var tol = parseFloat(amount.getAttribute('data-tolerance')) / 100;
+		var run = function () {
+			var v = parseFloat(amount.value) || 0;
+			var diff = v - exp;
+			var ok = Math.abs(diff) <= Math.max(1, exp * tol);
+			check.textContent = ok ? 'Cocok dengan barang yang diterima.' : 'Selisih ' + rp.format(diff) + ' dari nilai barang diterima.';
+			check.className = 'form-text ' + (ok ? 'text-success' : 'text-danger');
+		};
+		amount.addEventListener('input', run);
+		run();
+	}
+
+	// Form terima barang: tandai alasan selisih wajib saat jumlah beda dari sisa
+	document.querySelectorAll('.gr-line').forEach(function (row) {
+		var q = row.querySelector('.gr-qty');
+		var reason = row.querySelector('.gr-reason');
+		if (!q || !reason) return;
+		var rem = parseFloat(row.getAttribute('data-remaining'));
+		var run = function () {
+			var v = parseFloat(q.value);
+			var differs = q.value !== '' && v > 0 && Math.abs(v - rem) > 0.0005;
+			reason.required = differs;
+			reason.classList.toggle('is-invalid', differs && reason.value.trim() === '');
+		};
+		q.addEventListener('input', run);
+		reason.addEventListener('input', run);
+		run();
+	});
+})();

@@ -63,13 +63,45 @@
 </div>
 <?php endif; ?>
 
+<?php if (isset($purchase)):
+	$tasks = array(
+		array('PO menunggu approval Manajer', $purchase['approval_1'], 'purchase/orders?status=submitted', 'purchase.approve', 'warning'),
+		array('PO menunggu approval Owner', $purchase['approval_2'], 'purchase/orders?status=submitted', 'purchase.approve_owner', 'warning'),
+		array('PO menunggu barang datang', $purchase['to_receive'], 'purchase/receipts', 'purchase.receive', 'primary'),
+		array('PO terlambat dari tanggal kirim', $purchase['late'], 'purchase/receipts', 'purchase.view', 'danger'),
+		array('Invoice perlu direview', $purchase['invoices'], 'purchase/invoices?status=pending', 'purchase.invoice', 'warning'),
+		array('Pembayaran perlu diverifikasi', $purchase['payments'], 'purchase/payments?status=pending', 'purchase.payment', 'warning'),
+		array('Invoice lewat jatuh tempo', $purchase['overdue'], 'purchase/invoices?payment=outstanding', 'purchase.view', 'danger'),
+	);
+	$tasks = array_filter($tasks, function ($t) { return $t[1] > 0 && can($t[3]); });
+?>
+<div class="card mb-4">
+	<div class="card-header d-flex align-items-center">
+		<span><i class="bi bi-cart3"></i> Pembelian</span>
+		<?php if ($purchase['outstanding'] > 0): ?><span class="ms-auto small fw-normal">Hutang supplier: <strong><?= rupiah($purchase['outstanding']) ?></strong></span><?php endif; ?>
+	</div>
+	<div class="card-body">
+		<?php if ( ! $tasks): ?>
+			<div class="text-success"><i class="bi bi-check-circle"></i> Tidak ada tugas pembelian yang menunggu.</div>
+		<?php endif; ?>
+		<?php foreach ($tasks as $t): ?>
+			<a class="d-flex align-items-center text-decoration-none py-1" href="<?= site_url($t[2]) ?>">
+				<i class="bi bi-dot text-<?= $t[4] ?> fs-4 lh-1"></i>
+				<span class="text-body"><?= e($t[0]) ?></span>
+				<span class="badge text-bg-<?= $t[4] ?> ms-auto"><?= (int) $t[1] ?></span>
+			</a>
+		<?php endforeach; ?>
+	</div>
+</div>
+<?php endif; ?>
+
 <div class="card">
 	<div class="card-header">Progres pengembangan (PRD bagian 5)</div>
 	<ul class="list-group list-group-flush">
 		<?php foreach (array(
 			array('Fase 1', 'Fondasi & RBAC: login, user, role, permission, audit log', TRUE),
 			array('Fase 2', 'Inventory: bahan baku, supplier, stok FIFO, opname, peringatan, laporan', TRUE),
-			array('Fase 3', 'Pembelian: PO, penerimaan barang, pembayaran supplier', FALSE),
+			array('Fase 3', 'Pembelian: PO dengan approval, penerimaan barang, invoice (3-way match), pembayaran supplier', TRUE),
 			array('Fase 4', 'Menu: resep, COGS, barcode', FALSE),
 			array('Fase 5', 'POS & order: dine-in, takeaway, delivery, shift', FALSE),
 			array('Fase 6', 'Refund & settlement', FALSE),

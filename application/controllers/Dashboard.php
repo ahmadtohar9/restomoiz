@@ -26,6 +26,12 @@ class Dashboard extends MY_Controller {
 			$data['stock_totals'] = $this->Stock_model->totals();
 		}
 
+		if (can('purchase.view'))
+		{
+			$this->load->model('Purchase_model');
+			$data['purchase'] = $this->Purchase_model->pending_counts();
+		}
+
 		$this->render('dashboard/index', $data);
 	}
 }
