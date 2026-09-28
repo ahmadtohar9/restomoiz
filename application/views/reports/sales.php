@@ -83,7 +83,7 @@ $exp = function ($k) use ($qs) { return '<a class="small ms-auto no-print" href=
 	</div>
 </div>
 
-<script src="<?= base_url('assets/js/charts.js') ?>"></script>
+<script src="<?= asset_v('assets/js/charts.js') ?>"></script>
 <script>
 (function () {
 	Charts.bars(document.getElementById('c-cat'), { format: 'rp', name: 'Per kategori', items: <?= json_encode(array_map(function ($c) { return array('label' => $c['name'], 'value' => round($c['revenue']), 'note' => $c['qty'] . ' porsi'); }, array_values($category))) ?> });

@@ -107,7 +107,7 @@ $labels_short = array(1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu
 	</div>
 </div>
 
-<script src="<?= base_url('assets/js/charts.js') ?>"></script>
+<script src="<?= asset_v('assets/js/charts.js') ?>"></script>
 <script>
 (function () {
 	var daily = <?= json_encode(array_map(function ($d) { return array(date('j/n', strtotime($d['date'])), (float) $d['revenue']); }, $daily)) ?>;

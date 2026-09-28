@@ -28,7 +28,7 @@ $total_req = array_sum(array_map('intval', $status));
 <?php if (count($trend) > 1): ?>
 <div class="card mt-3"><div class="card-header">Tren nilai refund</div><div class="card-body"><div id="c-trend"></div></div></div>
 <?php endif; ?>
-<script src="<?= base_url('assets/js/charts.js') ?>"></script>
+<script src="<?= asset_v('assets/js/charts.js') ?>"></script>
 <script>
 (function () {
 	Charts.bars(document.getElementById('c-reason'), { format: 'num', name: 'Alasan refund', items: <?= json_encode(array_map(function ($r) { return array('label' => Refund_service::$reasons[$r['reason_code']], 'value' => (int) $r['n'], 'note' => 'pengajuan'); }, $by_reason)) ?> });

@@ -4,6 +4,8 @@
  *  - Charts.bars(el, {items:[{label, value, note}], format})  batang horizontal + label nilai
  *  - Charts.cells(el)  tooltip untuk sel heatmap (td[data-tip])
  * Teks dimasukkan dengan textContent (label berasal dari data).
+ * Responsif: SVG digambar seukuran lebar kontainer (1 unit = 1 px) sehingga teks tetap
+ * terbaca di HP, dan digambar ulang saat lebar berubah (rotasi layar, sidebar diciutkan).
  */
 window.Charts = (function () {
 	'use strict';
@@ -34,6 +36,8 @@ window.Charts = (function () {
 	}
 	function tip(host) {
 		var t = document.createElement('div'); t.className = 'viz-tip'; t.hidden = true; host.appendChild(t);
+		// Di layar sentuh tooltip tetap tampil setelah diketuk; ketuk di luar grafik untuk menutup.
+		document.addEventListener('pointerdown', function (e) { if (!host.contains(e.target)) t.hidden = true; });
 		return {
 			show: function (x, y, value, label) {
 				t.textContent = '';
@@ -41,18 +45,40 @@ window.Charts = (function () {
 				var k = document.createElement('span'); var key = document.createElement('i'); key.className = 'key';
 				k.appendChild(key); k.appendChild(document.createTextNode(label));
 				t.appendChild(s); t.appendChild(k);
-				t.style.left = x + 'px'; t.style.top = y + 'px'; t.hidden = false;
+				t.hidden = false;
+				// Jaga tooltip tetap di dalam kontainer (penting di layar sempit).
+				var half = t.offsetWidth / 2, maxX = host.clientWidth - half;
+				t.style.left = Math.max(half, Math.min(maxX, x)) + 'px';
+				t.style.top = Math.max(t.offsetHeight + 10, y) + 'px';
 			},
 			hide: function () { t.hidden = true; }
 		};
 	}
 
+	function width(host) { return Math.max(260, Math.round(host.clientWidth || 720)); }
+	// Gambar ulang saat lebar kontainer berubah.
+	function responsive(host, draw) {
+		host._draw = draw; host._w = width(host);
+		if (host._ro || !window.ResizeObserver) return;
+		var timer;
+		host._ro = new ResizeObserver(function () {
+			clearTimeout(timer);
+			timer = setTimeout(function () { if (Math.abs(width(host) - host._w) > 4) { host._w = width(host); host._draw(); } }, 120);
+		});
+		host._ro.observe(host);
+	}
+
 	function line(host, o) {
-		var W = 720, H = o.height || 240, L = 64, R = 12, T = 12, B = 28;
-		var f = o.format || 'rp', vals = o.values, n = vals.length;
 		host.classList.add('viz'); host.textContent = '';
+		responsive(host, function () { line(host, o); });
+		var f = o.format || 'rp', vals = o.values, n = vals.length;
 		if (!n) { host.textContent = 'Tidak ada data.'; return; }
 		var max = niceMax(Math.max.apply(null, vals));
+		var narrow = host._w < 480;
+		var W = host._w, H = o.height ? (narrow ? Math.max(o.height, 200) : o.height) : Math.round(Math.min(300, Math.max(200, W * 0.33)));
+		var longest = 0;
+		for (var gi = 0; gi <= 4; gi++) longest = Math.max(longest, compact(max * gi / 4, f).length);
+		var L = Math.round(longest * 6.2) + 12, R = narrow ? 8 : 12, T = 12, B = 26;
 		var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': o.name || 'Grafik' }, host);
 		var x = function (i) { return L + (n === 1 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1)); };
 		var y = function (v) { return T + (H - T - B) * (1 - v / max); };
@@ -61,9 +87,10 @@ window.Charts = (function () {
 			el('line', { x1: L, x2: W - R, y1: gy, y2: gy, 'class': 'v-grid' }, svg);
 			var tx = el('text', { x: L - 8, y: gy + 4, 'text-anchor': 'end', 'class': 'v-axis' }, svg); tx.textContent = compact(gv, f);
 		}
-		var step = Math.max(1, Math.ceil(n / 8));
+		// Jumlah label sumbu-x menyesuaikan lebar (±1 label per 56 px), label terakhir selalu tampil.
+		var fit = Math.max(2, Math.floor((W - L - R) / 56)), step = Math.max(1, Math.ceil(n / fit));
 		o.labels.forEach(function (lb, i) {
-			if (i % step && i !== n - 1) return;
+			if (i === n - 1 ? false : (i % step || (n - 1 - i) < step * 0.6)) return;
 			var t = el('text', { x: x(i), y: H - 8, 'text-anchor': 'middle', 'class': 'v-axis' }, svg); t.textContent = lb;
 		});
 		var d = vals.map(function (v, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); }).join(' ');
@@ -71,7 +98,7 @@ window.Charts = (function () {
 		el('path', { d: d, 'class': 'v-line' }, svg);
 		var cross = el('line', { y1: T, y2: H - B, 'class': 'v-cross', visibility: 'hidden' }, svg);
 		var dot = el('circle', { r: 5, 'class': 'v-dot', visibility: 'hidden' }, svg);
-		var hit = el('rect', { x: L, y: T, width: W - L - R, height: H - T - B, fill: 'transparent', tabindex: 0 }, svg);
+		var hit = el('rect', { x: L, y: T, width: W - L - R, height: H - T - B, fill: 'transparent', tabindex: 0, style: 'touch-action: pan-y' }, svg);
 		var tp = tip(host);
 		var at = function (i) {
 			var px = x(i), py = y(vals[i]), scale = host.clientWidth / W;
@@ -80,11 +107,15 @@ window.Charts = (function () {
 			tp.show(px * scale, py * scale, (fmt[f] || fmt.num)(vals[i]), o.labels[i] + (o.name ? ' · ' + o.name : ''));
 		};
 		var cur = n - 1;
+		hit.addEventListener('pointerdown', function (e) {
+			var r = hit.getBoundingClientRect(), rel = (e.clientX - r.left) / r.width;
+			cur = Math.max(0, Math.min(n - 1, Math.round(rel * (n - 1)))); at(cur);
+		});
 		hit.addEventListener('pointermove', function (e) {
 			var r = hit.getBoundingClientRect(), rel = (e.clientX - r.left) / r.width;
 			cur = Math.max(0, Math.min(n - 1, Math.round(rel * (n - 1)))); at(cur);
 		});
-		hit.addEventListener('pointerleave', function () { tp.hide(); cross.setAttribute('visibility', 'hidden'); dot.setAttribute('visibility', 'hidden'); });
+		hit.addEventListener('pointerleave', function (e) { if (e.pointerType === 'touch') return; tp.hide(); cross.setAttribute('visibility', 'hidden'); dot.setAttribute('visibility', 'hidden'); });
 		hit.addEventListener('focus', function () { at(cur); });
 		hit.addEventListener('blur', function () { tp.hide(); });
 		hit.addEventListener('keydown', function (e) {
@@ -96,15 +127,21 @@ window.Charts = (function () {
 	function bars(host, o) {
 		var items = o.items, f = o.format || 'rp';
 		host.classList.add('viz'); host.textContent = '';
+		responsive(host, function () { bars(host, o); });
 		if (!items.length) { host.textContent = 'Tidak ada data.'; return; }
-		var W = 720, LW = 190, VW = 110, row = 30, barH = 14, H = items.length * row + 4;
+		var W = host._w;
+		// Layar sempit: label di atas batang (batang memakai lebar penuh).
+		var stacked = W < 480;
+		var LW = stacked ? 0 : Math.min(190, Math.round(W * 0.3)), VW = stacked ? 64 : 84;
+		var row = stacked ? 44 : 30, barH = stacked ? 12 : 14, H = items.length * row + 4;
+		var maxChars = stacked ? Math.floor(W / 7) : Math.floor(LW / 7);
 		var max = Math.max.apply(null, items.map(function (i) { return i.value; })) || 1;
 		var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': o.name || 'Grafik batang' }, host);
 		var tp = tip(host);
 		items.forEach(function (it, i) {
-			var yc = i * row + row / 2, w = Math.max(2, (W - LW - VW) * it.value / max);
-			var lb = el('text', { x: LW - 10, y: yc + 4, 'text-anchor': 'end', 'class': 'v-label' }, svg);
-			lb.textContent = it.label.length > 26 ? it.label.slice(0, 25) + '…' : it.label;
+			var yc = stacked ? i * row + 30 : i * row + row / 2, w = Math.max(2, (W - LW - VW) * it.value / max);
+			var lb = stacked ? el('text', { x: 0, y: i * row + 15, 'class': 'v-label' }, svg) : el('text', { x: LW - 10, y: yc + 4, 'text-anchor': 'end', 'class': 'v-label' }, svg);
+			lb.textContent = it.label.length > maxChars ? it.label.slice(0, maxChars - 1) + '…' : it.label;
 			var bar = el('rect', { x: LW, y: yc - barH / 2, width: w, height: barH, rx: 4, 'class': 'v-bar' }, svg);
 			// Ujung kiri rata ke baseline: tutup lengkung kiri dengan persegi kecil.
 			el('rect', { x: LW, y: yc - barH / 2, width: Math.min(4, w), height: barH, 'class': 'v-bar' }, svg);
