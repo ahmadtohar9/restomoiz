@@ -142,6 +142,16 @@ Alur: **PO** (draft → submit → approval) → **Penerimaan barang** (stok mas
 - **Go-Live Checklist** (*Administrasi → Go-Live Checklist*): pengecekan otomatis kesiapan (migration, SSL, backup, profil resto, data master, user per role, uji alur) + daftar manual perangkat & tim (PRD bagian 6).
 - **Upgrade**: `git pull` lalu `php public/index.php cli setup` (migration + seed permission baru). Backup dulu sebelum upgrade.
 
+## Tampilan (Tailwind CSS, offline)
+
+Semua aset front-end disajikan lokal dari `public/assets/` — tidak ada CDN, aplikasi tetap tampil utuh tanpa internet (mis. jaringan kasir lokal).
+
+- `resources/css/app.css` → **Tailwind CSS** (prefix `tw-`, preflight nonaktif) untuk layout: sidebar, topbar, login, dan sentuhan komponen.
+- `resources/scss/bootstrap.scss` → tema **Bootstrap 5.3** (grid, form, modal, dropdown, offcanvas) dikompilasi dengan warna yang sama.
+- `public/assets/vendor/` → Bootstrap JS, Bootstrap Icons, dan font Inter (lisensi disertakan).
+- Hasil build **di-commit**, jadi server produksi tidak butuh Node.js. Setelah mengubah tampilan, jalankan di mesin dev: `npm install` lalu `npm run build` (atau `npm run watch:css` saat mengembangkan).
+- Sidebar: grup bisa dibuka/tutup (diingat per browser), tombol ciutkan jadi ikon saja di desktop, drawer di HP, dan pencarian menu (tekan `/`).
+
 ## Keamanan
 
 - Password di-hash dengan `password_hash()` (bcrypt), dengan aturan minimal 8 karakter berisi huruf dan angka.

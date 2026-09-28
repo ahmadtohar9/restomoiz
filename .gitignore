@@ -27,3 +27,6 @@ PRD_*.md
 /storage/*
 !/storage/.htaccess
 !/storage/index.html
+
+# Build tools
+/node_modules/

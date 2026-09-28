@@ -7,14 +7,15 @@ $CI =& get_instance();
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
 	<title>POS · <?= e($resto) ?></title>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-	<link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
-	<link rel="stylesheet" href="<?= base_url('assets/css/pos.css') ?>">
+	<link rel="stylesheet" href="<?= base_url('assets/vendor/inter/inter.css') ?>">
+	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
+	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
+	<link rel="stylesheet" href="<?= asset_v('assets/css/app.css') ?>">
+	<link rel="stylesheet" href="<?= asset_v('assets/css/pos.css') ?>">
 </head>
 <body class="pos-body">
 <header class="pos-top">
-	<a class="pos-brand" href="<?= site_url('dashboard') ?>" title="Kembali ke dashboard"><i class="bi bi-shop"></i> <?= e($resto) ?></a>
+	<a class="pos-brand" href="<?= site_url('dashboard') ?>" title="Kembali ke dashboard"><span class="brand-logo tw-h-8 tw-w-8 tw-rounded-lg tw-text-base"><i class="bi bi-shop"></i></span> <span><?= e($resto) ?><small class="tw-block tw-text-[.65rem] tw-font-medium tw-uppercase tw-tracking-[.14em] tw-text-slate-400">Point of Sale</small></span></a>
 	<div class="d-flex gap-2 align-items-center ms-auto flex-wrap">
 		<?php if ($can_pay): ?>
 			<?php if ($shift): ?>
@@ -203,7 +204,7 @@ window.POS = {
 	orderId: <?= (int) $order_id ?>
 };
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="<?= base_url('assets/js/pos.js') ?>"></script>
+<script src="<?= base_url('assets/vendor/bootstrap/bootstrap.bundle.min.js') ?>"></script>
+<script src="<?= asset_v('assets/js/pos.js') ?>"></script>
 </body>
 </html>

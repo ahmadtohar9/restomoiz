@@ -372,3 +372,105 @@
 		show();
 	}
 })();
+
+/* ---------- Sidebar: grup buka/tutup, ciutkan (desktop), cari menu ---------- */
+(function () {
+	'use strict';
+
+	var nav = document.getElementById('sidebar-nav');
+	if (!nav) return;
+	var root = document.documentElement;
+	var store = {
+		get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+		set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+	};
+
+	// Grup yang ditutup user diingat; grup berisi halaman aktif selalu terbuka.
+	var closed = [];
+	try { closed = JSON.parse(store.get('rm.navClosed') || '[]') || []; } catch (e) { closed = []; }
+	nav.querySelectorAll('.nav-group').forEach(function (g) {
+		if (closed.indexOf(g.getAttribute('data-group')) !== -1 && !g.hasAttribute('data-has-active')) setOpen(g, false);
+	});
+	function setOpen(g, open) {
+		g.classList.toggle('is-closed', !open);
+		var btn = g.querySelector('.nav-group-toggle');
+		if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+	}
+	nav.addEventListener('click', function (e) {
+		var btn = e.target.closest('.nav-group-toggle');
+		if (!btn) return;
+		var g = btn.closest('.nav-group');
+		var open = g.classList.contains('is-closed');
+		setOpen(g, open);
+		var key = g.getAttribute('data-group');
+		closed = closed.filter(function (k) { return k !== key; });
+		if (!open) closed.push(key);
+		store.set('rm.navClosed', JSON.stringify(closed));
+	});
+
+	// Ciutkan sidebar jadi ikon saja (desktop); label jadi tooltip.
+	function syncTitles() {
+		var collapsed = root.classList.contains('sb-collapsed');
+		nav.querySelectorAll('.nav-link').forEach(function (a) {
+			if (collapsed) a.setAttribute('title', a.getAttribute('data-label'));
+			else a.removeAttribute('title');
+		});
+	}
+	var toggle = document.getElementById('sb-toggle');
+	if (toggle) {
+		toggle.addEventListener('click', function () {
+			var collapsed = root.classList.toggle('sb-collapsed');
+			store.set('rm.sbCollapsed', collapsed ? '1' : '0');
+			syncTitles();
+		});
+	}
+	syncTitles();
+
+	// Cari menu: saring item, buka semua grup yang cocok.
+	var search = document.getElementById('nav-search');
+	var empty = document.getElementById('nav-empty');
+	if (search) {
+		search.addEventListener('input', function () {
+			var q = search.value.trim().toLowerCase();
+			var any = false;
+			nav.querySelectorAll('.nav-group').forEach(function (g) {
+				var hits = 0;
+				g.querySelectorAll('.nav-link').forEach(function (a) {
+					var match = !q || a.getAttribute('data-label').toLowerCase().indexOf(q) !== -1;
+					a.classList.toggle('is-hidden', !match);
+					if (match) hits++;
+				});
+				g.classList.toggle('is-hidden', hits === 0);
+				g.classList.toggle('is-searching', !!q);
+				if (q && hits) g.classList.remove('is-closed');
+				else if (!q) setOpen(g, closed.indexOf(g.getAttribute('data-group')) === -1 || g.hasAttribute('data-has-active'));
+				if (hits) any = true;
+			});
+			empty.style.display = any ? '' : 'block';
+		});
+		search.addEventListener('keydown', function (e) {
+			if (e.key === 'Enter') {
+				var first = nav.querySelector('.nav-link:not(.is-hidden)');
+				if (first) { e.preventDefault(); first.click(); }
+			} else if (e.key === 'Escape') {
+				search.value = '';
+				search.dispatchEvent(new Event('input'));
+				search.blur();
+			}
+		});
+		// Tekan "/" di mana saja (bukan saat mengetik) untuk fokus ke pencarian menu.
+		document.addEventListener('keydown', function (e) {
+			if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+			var t = e.target;
+			if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+			e.preventDefault();
+			if (root.classList.contains('sb-collapsed')) { root.classList.remove('sb-collapsed'); store.set('rm.sbCollapsed', '0'); syncTitles(); }
+			if (window.innerWidth < 992 && window.bootstrap) bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('sidebar')).show();
+			search.focus();
+		});
+	}
+
+	// Pastikan item aktif terlihat tanpa scroll manual.
+	var active = nav.querySelector('.nav-link.active');
+	if (active && active.offsetTop > nav.clientHeight - 60) nav.scrollTop = active.offsetTop - nav.clientHeight / 2;
+})();

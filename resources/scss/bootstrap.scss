@@ -1,0 +1,93 @@
+// Tema Bootstrap Resto Moiz — dikompilasi lokal (npm run build:bootstrap), tanpa CDN.
+// Warna mengikuti palet Tailwind (slate/indigo) agar menyatu dengan layout Tailwind.
+
+$white: #fff;
+$gray-100: #f1f5f9;
+$gray-200: #e2e8f0;
+$gray-300: #cbd5e1;
+$gray-400: #94a3b8;
+$gray-500: #64748b;
+$gray-600: #475569;
+$gray-700: #334155;
+$gray-800: #1e293b;
+$gray-900: #0f172a;
+
+$primary: #4f46e5;
+$secondary: #64748b;
+$success: #16a34a;
+$info: #0891b2;
+$warning: #f59e0b;
+$danger: #dc2626;
+$light: #f1f5f9;
+$dark: #0f172a;
+
+$font-family-sans-serif: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$font-size-base: .9375rem;
+$headings-font-weight: 600;
+// Latar halaman diatur di app.css (body); komponen (card, input, tabel, modal) tetap putih.
+$code-color: $gray-600;
+$body-color: $gray-800;
+$body-secondary-color: $gray-500;
+$link-decoration: none;
+$link-hover-decoration: underline;
+$border-color: $gray-200;
+
+$border-radius: .5rem;
+$border-radius-sm: .375rem;
+$border-radius-lg: .75rem;
+$border-radius-xl: 1rem;
+
+$box-shadow-sm: 0 1px 2px rgba(15, 23, 42, .05);
+$box-shadow: 0 4px 16px rgba(15, 23, 42, .08);
+
+$input-btn-focus-width: .2rem;
+$input-btn-focus-color-opacity: .18;
+$input-border-color: $gray-300;
+$input-focus-border-color: #a5b4fc;
+$input-placeholder-color: $gray-400;
+$form-label-font-weight: 500;
+$form-label-color: $gray-700;
+
+$btn-font-weight: 500;
+$btn-padding-x: .9rem;
+$btn-border-radius: .5rem;
+$btn-border-radius-sm: .4rem;
+
+$card-border-color: $gray-200;
+$card-border-radius: .875rem;
+$card-cap-bg: $white;
+$card-cap-padding-y: .85rem;
+$card-cap-padding-x: 1.1rem;
+$card-spacer-x: 1.1rem;
+$card-box-shadow: $box-shadow-sm;
+
+$table-cell-padding-y: .6rem;
+$table-cell-padding-x: .75rem;
+$table-cell-padding-y-sm: .4rem;
+$table-cell-padding-x-sm: .6rem;
+$table-th-font-weight: 600;
+$table-border-color: $gray-200;
+$table-striped-bg-factor: .025;
+$table-hover-bg-factor: .035;
+
+$badge-font-weight: 600;
+$badge-padding-y: .35em;
+$badge-padding-x: .6em;
+$badge-border-radius: .375rem;
+
+$dropdown-border-color: $gray-200;
+$dropdown-box-shadow: 0 10px 30px rgba(15, 23, 42, .12);
+$dropdown-link-hover-bg: $gray-100;
+$dropdown-padding-x: .35rem;
+$dropdown-item-padding-x: .75rem;
+
+$modal-content-border-radius: 1rem;
+$modal-content-border-color: transparent;
+$modal-backdrop-opacity: .45;
+
+$alert-border-radius: .75rem;
+$nav-pills-border-radius: .5rem;
+$list-group-border-color: $gray-200;
+$pagination-border-radius: .5rem;
+
+@import "bootstrap/scss/bootstrap";

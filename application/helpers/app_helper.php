@@ -73,6 +73,16 @@ if ( ! function_exists('is_active_nav'))
 	}
 }
 
+if ( ! function_exists('asset_v'))
+{
+	/** URL aset lokal + ?v=waktu-ubah file, agar browser mengambil versi baru setelah deploy. */
+	function asset_v($path)
+	{
+		$file = FCPATH . $path;
+		return base_url($path) . (is_file($file) ? '?v=' . filemtime($file) : '');
+	}
+}
+
 if ( ! function_exists('validate_password'))
 {
 	/**
