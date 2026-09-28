@@ -33,7 +33,13 @@
 	function get(url) {
 		return fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' }).then(function (r) { return r.json(); });
 	}
+	// Konfirmasi (SweetAlert2 bila tersedia). msg kosong/false = tidak perlu tanya.
+	function ask(msg) {
+		if (!msg) return Promise.resolve(true);
+		return window.UI ? UI.confirm(msg) : Promise.resolve(window.confirm(msg));
+	}
 	function toast(msg, type) {
+		if (window.UI && window.Swal) { UI.toast(msg, { danger: 'error', success: 'success', warning: 'warning' }[type] || 'info', 3500); return; }
 		var t = $('toast');
 		t.className = 'toast align-items-center border-0 text-bg-' + (type || 'dark');
 		$('toast-body').textContent = msg;
@@ -354,7 +360,10 @@
 			extra.payment = { method: state.method, paid_amount: parseFloat($('pay-cash').value) || 0, card_type: $('card-type').value,
 				card_last4: $('card-last4').value, approval_code: $('approval-code').value, payment_ref: $('payment-ref').value };
 		}
-		return post(P.urls.submit, payload(extra)).then(function (r) {
+		var busy = window.UI ? UI.loading : null;
+		if (busy) busy.start({ overlay: true, immediate: true, text: action === 'pay' ? 'Memproses pembayaran…' : 'Mengirim pesanan…' });
+		var finish = function () { if (busy) busy.done(); };
+		return post(P.urls.submit, payload(extra)).then(function (r) { finish(); return r; }, function (err) { finish(); throw err; }).then(function (r) {
 			btns.forEach(function (b) { b.disabled = false; });
 			if (!r.ok) {
 				if (action === 'pay') { $('pay-error').textContent = r.message; $('pay-error').hidden = false; } else { toast(r.message, 'danger'); }
@@ -463,22 +472,27 @@
 		$('table-select').addEventListener('change', function (e) {
 			var opt = e.target.selectedOptions[0];
 			if (opt && opt.getAttribute('data-order')) {
-				if (state.cart.length && !confirm('Meja ini masih ada pesanan. Buka pesanan tersebut? Keranjang saat ini akan dipindahkan ke pesanan itu.')) { e.target.value = state.tableId; return; }
-				var cart = state.cart;
-				loadOrder(opt.getAttribute('data-order')).then(function () { state.cart = cart; renderCart(); requestQuote(); });
+				var sel = e.target;
+				ask(state.cart.length && 'Meja ini masih ada pesanan. Buka pesanan tersebut? Keranjang saat ini akan dipindahkan ke pesanan itu.').then(function (ok) {
+					if (!ok) { sel.value = state.tableId; return; }
+					var cart = state.cart;
+					loadOrder(opt.getAttribute('data-order')).then(function () { state.cart = cart; renderCart(); requestQuote(); });
+				});
 				return;
 			}
 			state.tableId = e.target.value;
 		});
 		$('open-orders').addEventListener('change', function (e) {
-			if (!e.target.value) return;
-			if (state.cart.length && !confirm('Keranjang saat ini akan ditambahkan ke pesanan yang dipilih. Lanjutkan?')) { e.target.value = ''; return; }
-			var cart = state.cart;
-			loadOrder(e.target.value).then(function () { state.cart = cart; renderCart(); requestQuote(); });
+			var sel = e.target, id = sel.value;
+			if (!id) return;
+			ask(state.cart.length && 'Keranjang saat ini akan ditambahkan ke pesanan yang dipilih. Lanjutkan?').then(function (ok) {
+				if (!ok) { sel.value = ''; return; }
+				var cart = state.cart;
+				loadOrder(id).then(function () { state.cart = cart; renderCart(); requestQuote(); });
+			});
 		});
 		$('btn-new').addEventListener('click', function () {
-			if ((state.cart.length || state.orderId) && !confirm('Kosongkan layar dan mulai pesanan baru? Item yang belum dikirim akan hilang.')) return;
-			resetOrder();
+			ask((state.cart.length || state.orderId) && 'Kosongkan layar dan mulai pesanan baru? Item yang belum dikirim akan hilang.').then(function (ok) { if (ok) resetOrder(); });
 		});
 
 		// Pelanggan

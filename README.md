@@ -151,6 +151,10 @@ Semua aset front-end disajikan lokal dari `public/assets/` — tidak ada CDN, ap
 - `public/assets/vendor/` → Bootstrap JS, Bootstrap Icons, dan font Inter (lisensi disertakan).
 - Hasil build **di-commit**, jadi server produksi tidak butuh Node.js. Setelah mengubah tampilan, jalankan di mesin dev: `npm install` lalu `npm run build` (atau `npm run watch:css` saat mengembangkan).
 - Sidebar: grup bisa dibuka/tutup (diingat per browser), tombol ciutkan jadi ikon saja di desktop, drawer di HP, dan pencarian menu (tekan `/`).
+- `public/assets/js/ui.js` (semua aset lokal di `public/assets/vendor`):
+  - **DataTables** (cari, urut, halaman, responsif di HP) otomatis untuk tabel daftar di halaman index dan tabel > 10 baris. Rupiah/angka/tanggal Indonesia terurut benar. `data-dt="false"` = matikan, `data-dt="true"` = paksa, `data-dt-paging="false"` = paging tetap dari server. Tabel berisi input/checkbox form dan tabel rowspan dilewati agar data form tetap terkirim.
+  - **SweetAlert2**: `<form data-confirm="...">`, `<button data-confirm-click="...">`, flash message jadi toast; JS: `UI.confirm(msg)`, `UI.alert(msg, icon)`, `UI.toast(msg, icon)`.
+  - **Spinner**: progress bar saat pindah halaman / `fetch()`, spinner di tombol + overlay "Menyimpan…" saat submit form POST, submit ganda dicegah. `fetch` dengan header `X-Silent: 1` (polling dapur) tidak memicu progress bar.
 
 ## Keamanan
 

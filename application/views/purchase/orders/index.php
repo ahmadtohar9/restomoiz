@@ -50,7 +50,7 @@ $qs = function (array $extra = array()) use ($filters) {
 
 <div class="card">
 	<div class="table-responsive">
-		<table class="table table-hover align-middle mb-0">
+		<table class="table table-hover align-middle mb-0" data-dt="true" data-dt-paging="false">
 			<thead><tr><th>No. PO</th><th>Tanggal</th><th>Supplier</th><th class="text-end">Total</th><th class="text-end">Diterima</th><th>Kirim</th><th>Status</th></tr></thead>
 			<tbody>
 			<?php if (empty($rows)): ?><tr><td colspan="7" class="text-center text-muted py-4">Belum ada PO.</td></tr><?php endif; ?>

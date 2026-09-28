@@ -41,6 +41,7 @@
 	</div>
 	<p class="tw-mt-6 tw-text-center tw-text-xs tw-text-slate-400">&copy; <?= date('Y') ?> Resto Moiz</p>
 	</div>
+	<script src="<?= asset_v('assets/js/ui.js') ?>"></script>
 	<script>
 	document.getElementById('pw-toggle').addEventListener('click', function () {
 		var i = document.getElementById('password'), show = i.type === 'password';

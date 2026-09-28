@@ -24,6 +24,32 @@ copy('bootstrap-icons/font/fonts/bootstrap-icons.woff2', 'bootstrap-icons/fonts/
 copy('bootstrap-icons/font/fonts/bootstrap-icons.woff', 'bootstrap-icons/fonts/bootstrap-icons.woff');
 copy('bootstrap-icons/LICENSE', 'bootstrap-icons/LICENSE');
 
+// Digabung jadi satu file agar sedikit request (penting di jaringan kasir yang lambat).
+function bundle(files, to, sep) {
+  fs.mkdirSync(path.dirname(path.join(out, to)), { recursive: true });
+  fs.writeFileSync(path.join(out, to), files.map(f => fs.readFileSync(path.join(nm, f), 'utf8').replace(/\/\/# sourceMappingURL=.*$/m, '')).join(sep));
+  console.log('  ' + to);
+}
+
+// DataTables 2 + Responsive (tema Bootstrap 5), butuh jQuery
+bundle([
+  'jquery/dist/jquery.min.js',
+  'datatables.net/js/dataTables.min.js',
+  'datatables.net-bs5/js/dataTables.bootstrap5.min.js',
+  'datatables.net-responsive/js/dataTables.responsive.min.js',
+  'datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js',
+], 'datatables/datatables.min.js', ';\n');
+bundle([
+  'datatables.net-bs5/css/dataTables.bootstrap5.min.css',
+  'datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css',
+], 'datatables/datatables.min.css', '\n');
+copy('jquery/LICENSE.txt', 'datatables/LICENSE-jquery.txt');
+copy('datatables.net/License.txt', 'datatables/LICENSE-datatables.txt');
+
+// SweetAlert2 (CSS sudah termasuk di file .all)
+copy('sweetalert2/dist/sweetalert2.all.min.js', 'sweetalert2/sweetalert2.all.min.js');
+copy('sweetalert2/LICENSE', 'sweetalert2/LICENSE');
+
 // Font Inter (variable) latin + latin-ext
 copy('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2', 'inter/inter-latin-wght-normal.woff2');
 copy('@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2', 'inter/inter-latin-ext-wght-normal.woff2');

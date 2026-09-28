@@ -46,7 +46,7 @@ $badge = array('success' => 'success', 'denied' => 'danger', 'failed' => 'warnin
 <div class="card">
 	<div class="card-header small text-muted"><?= number_format($total, 0, ',', '.') ?> entri</div>
 	<div class="table-responsive">
-		<table class="table table-sm align-middle mb-0">
+		<table class="table table-sm align-middle mb-0" data-dt="true" data-dt-paging="false">
 			<thead><tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Hasil</th><th>Detail</th><th>IP</th></tr></thead>
 			<tbody>
 			<?php if (empty($rows)): ?>

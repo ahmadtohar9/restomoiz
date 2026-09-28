@@ -1,13 +1,7 @@
 (function () {
 	'use strict';
 
-	// Konfirmasi sebelum submit form berbahaya: <form data-confirm="Yakin?">
-	document.addEventListener('submit', function (e) {
-		var msg = e.target.getAttribute('data-confirm');
-		if (msg && !window.confirm(msg)) {
-			e.preventDefault();
-		}
-	});
+	// Konfirmasi <form data-confirm> & <button data-confirm-click> ditangani ui.js (SweetAlert2).
 
 	document.addEventListener('click', function (e) {
 		var el = e.target.closest('[data-check-all],[data-uncheck-all],[data-toggle-group]');
@@ -43,13 +37,6 @@
 	var fmt = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 });
 	var rp = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 
-	// Konfirmasi untuk tombol submit tertentu: <button data-confirm-click="Yakin?">
-	document.addEventListener('click', function (e) {
-		var btn = e.target.closest('[data-confirm-click]');
-		if (btn && !window.confirm(btn.getAttribute('data-confirm-click'))) {
-			e.preventDefault();
-		}
-	});
 
 	// Tambah baris dengan menyalin baris terakhir: <button data-add-row="#container" data-row=".row-class">
 	document.addEventListener('click', function (e) {

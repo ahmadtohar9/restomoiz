@@ -43,7 +43,7 @@ $type_badge = array('IN' => 'success', 'OUT' => 'danger', 'ADJ' => 'warning');
 <div class="card">
 	<div class="card-header small text-muted"><?= number_format($total, 0, ',', '.') ?> pergerakan</div>
 	<div class="table-responsive">
-		<table class="table table-sm align-middle mb-0">
+		<table class="table table-sm align-middle mb-0" data-dt="true" data-dt-paging="false">
 			<thead><tr><th>Waktu</th><th>Dokumen</th><th>Bahan</th><th>Tipe</th><th class="text-end">Qty</th><th class="text-end">Saldo</th><?php if ($can_cost): ?><th class="text-end">Nilai</th><?php endif; ?><th>Keterangan</th><th>Oleh</th></tr></thead>
 			<tbody>
 			<?php if (empty($rows)): ?><tr><td colspan="9" class="text-center text-muted py-4">Tidak ada pergerakan untuk filter ini.</td></tr><?php endif; ?>

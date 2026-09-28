@@ -205,6 +205,8 @@ window.POS = {
 };
 </script>
 <script src="<?= base_url('assets/vendor/bootstrap/bootstrap.bundle.min.js') ?>"></script>
+<script src="<?= asset_v('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>"></script>
+<script src="<?= asset_v('assets/js/ui.js') ?>"></script>
 <script src="<?= asset_v('assets/js/pos.js') ?>"></script>
 </body>
 </html>

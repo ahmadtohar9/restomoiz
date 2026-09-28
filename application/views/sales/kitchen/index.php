@@ -76,7 +76,7 @@
 	}
 
 	function load() {
-		fetch(feedUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (d) {
+		fetch(feedUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-Silent': '1' }, credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (d) {
 			var ids = {}, readyIds = {}, hasNew = false, hasReady = false;
 			d.orders.forEach(function (o) { o.items.forEach(function (i) {
 				ids[i.id] = true; if (i.status === 'ready') readyIds[i.id] = true;
@@ -99,7 +99,7 @@
 		if (b.hasAttribute('data-item')) body.append('item_id', b.getAttribute('data-item'));
 		if (b.hasAttribute('data-order')) body.append('order_id', b.getAttribute('data-order'));
 		fetch(statusUrl, { method: 'POST', body: body, headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
-			.then(function (r) { return r.json(); }).then(function (r) { if (!r.ok) alert(r.message); load(); });
+			.then(function (r) { return r.json(); }).then(function (r) { if (!r.ok) { if (window.UI) UI.alert(r.message, 'error'); else alert(r.message); } load(); });
 	});
 	document.getElementById('k-filter').addEventListener('change', render);
 	load(); setInterval(load, refresh);

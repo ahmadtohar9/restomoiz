@@ -95,6 +95,7 @@ foreach ($groups as $gi => &$group)
 	unset($item);
 }
 unset($group);
+$dt_auto = $this->router->fetch_method() === 'index' && ! in_array($this->uri->segment(1), array('dashboard', 'reports', ''), TRUE);
 $initials = strtoupper(implode('', array_map(function ($w) { return mb_substr($w, 0, 1); }, array_slice(preg_split('/\s+/', trim($current_user['name'])), 0, 2))));
 $role_label = implode(', ', $current_user['role_names']) ?: 'Tanpa role';
 ?><!doctype html>
@@ -108,9 +109,10 @@ $role_label = implode(', ', $current_user['role_names']) ?: 'Tanpa role';
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/inter/inter.css') ?>">
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
+	<link rel="stylesheet" href="<?= asset_v('assets/vendor/datatables/datatables.min.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/app.css') ?>">
 </head>
-<body>
+<body data-dt-auto="<?= $dt_auto ? 1 : 0 ?>">
 <div class="app">
 	<aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar" aria-label="Navigasi utama">
 		<div class="sidebar-brand">
@@ -185,7 +187,7 @@ $role_label = implode(', ', $current_user['role_names']) ?: 'Tanpa role';
 
 		<main class="content">
 			<?php if ($flash): ?>
-				<div class="alert alert-<?= e($flash['type']) ?> alert-dismissible fade show">
+				<div class="alert alert-<?= e($flash['type']) ?> alert-dismissible fade show" data-flash="<?= e($flash['type']) ?>" data-message="<?= e($flash['message']) ?>">
 					<?= e($flash['message']) ?>
 					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 				</div>
@@ -201,6 +203,9 @@ $role_label = implode(', ', $current_user['role_names']) ?: 'Tanpa role';
 	</div>
 </div>
 <script src="<?= base_url('assets/vendor/bootstrap/bootstrap.bundle.min.js') ?>"></script>
+<script src="<?= asset_v('assets/vendor/datatables/datatables.min.js') ?>"></script>
+<script src="<?= asset_v('assets/vendor/sweetalert2/sweetalert2.all.min.js') ?>"></script>
+<script src="<?= asset_v('assets/js/ui.js') ?>"></script>
 <script src="<?= asset_v('assets/js/app.js') ?>"></script>
 </body>
 </html>
