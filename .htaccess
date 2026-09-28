@@ -1,0 +1,3 @@
+# Document root seharusnya folder public/. File ini hanya pengaman kalau
+# document root salah diarahkan ke root project: semua request ditolak.
+Require all denied

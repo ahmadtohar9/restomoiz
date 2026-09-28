@@ -1,5 +1,23 @@
-# Object file
-*.o
+# Konfigurasi per-server
+.env
+.user.ini
 
-# Ada Library Information
-*.ali
+# Runtime
+/application/cache/*
+!/application/cache/index.html
+!/application/cache/.htaccess
+/application/logs/*
+!/application/logs/index.html
+/application/sessions/*
+!/application/sessions/index.html
+/public/uploads/*
+!/public/uploads/index.html
+
+# Dokumen internal (PRD tidak ikut repo publik)
+PRD_*.md
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+/vendor/

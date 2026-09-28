@@ -1,0 +1,192 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+/**
+ * Perintah command line. Hanya bisa dijalankan dari CLI:
+ *
+ *   php public/index.php cli migrate                     Jalankan migration ke versi terbaru
+ *   php public/index.php cli seed                        Sinkron permission, role default, settings
+ *   php public/index.php cli setup                       migrate + seed
+ *   php public/index.php cli create_admin <username> [password]
+ *                                                        Buat/reset user Admin. Tanpa password:
+ *                                                        dibuatkan acak & wajib ganti saat login.
+ */
+class Cli extends CI_Controller {
+
+	public function __construct()
+	{
+		parent::__construct();
+		if ( ! is_cli())
+		{
+			show_404();
+		}
+	}
+
+	public function index()
+	{
+		echo "Perintah: migrate | seed | setup | create_admin <username> [password]\n";
+	}
+
+	public function setup()
+	{
+		$this->migrate();
+		$this->seed();
+	}
+
+	public function migrate()
+	{
+		$this->load->library('migration');
+		if ($this->migration->latest() === FALSE)
+		{
+			$this->_fail($this->migration->error_string());
+		}
+		echo "Migration OK\n";
+	}
+
+	public function seed()
+	{
+		$this->config->load('rbac', TRUE);
+		$permissions = $this->config->item('rbac_permissions', 'rbac');
+		$roles = $this->config->item('rbac_default_roles', 'rbac');
+
+		$this->db->trans_start();
+
+		// 1. Permission: tambah yang baru, perbarui deskripsi/modul.
+		foreach ($permissions as $name => $meta)
+		{
+			$this->db->query(
+				'INSERT INTO permissions (name, module, description) VALUES (?, ?, ?)
+				 ON DUPLICATE KEY UPDATE module = VALUES(module), description = VALUES(description)',
+				array($name, $meta[0], $meta[1])
+			);
+		}
+		$perm_ids = array();
+		foreach ($this->db->select('id, name')->get('permissions')->result_array() as $row)
+		{
+			$perm_ids[$row['name']] = (int) $row['id'];
+		}
+
+		// 2. Role default: hanya dibuat kalau belum ada. Permission role yang
+		//    sudah ada tidak ditimpa supaya pengaturan admin tetap aman.
+		$created = 0;
+		foreach ($roles as $code => $role)
+		{
+			if ($this->db->where('code', $code)->count_all_results('roles') > 0)
+			{
+				continue;
+			}
+			$this->db->insert('roles', array(
+				'code'        => $code,
+				'name'        => $role['name'],
+				'description' => $role['description'],
+				'is_super'    => $role['is_super'] ? 1 : 0,
+				'is_system'   => 1,
+			));
+			$role_id = (int) $this->db->insert_id();
+			foreach ($role['permissions'] as $perm)
+			{
+				if ( ! isset($perm_ids[$perm]))
+				{
+					$this->_fail("Permission '$perm' di role '$code' tidak ada di rbac_permissions");
+				}
+				$this->db->insert('role_permissions', array('role_id' => $role_id, 'permission_id' => $perm_ids[$perm]));
+			}
+			$created++;
+		}
+
+		// 3. Pengaturan default (PRD: pajak & limit refund harus bisa diatur).
+		$settings = array(
+			'resto_name'          => array('Resto Moiz', 'Nama restoran (tampil di header & struk)'),
+			'tax_rate'            => array('11', 'Tarif PPN dalam persen'),
+			'tax_enabled'         => array('1', 'Kenakan PPN pada transaksi (1 = ya, 0 = tidak)'),
+			'service_charge_rate' => array('0', 'Service charge dalam persen'),
+			'refund_auto_limit'   => array('500000', 'Refund di bawah nilai ini boleh langsung oleh kasir'),
+			'refund_auto_minutes' => array('5', 'Batas menit sejak transaksi untuk refund langsung kasir'),
+			'refund_owner_limit'  => array('2000000', 'Refund di atas nilai ini butuh approval Owner'),
+			'po_auto_limit'       => array('5000000', 'PO di bawah nilai ini auto-approved'),
+			'po_owner_limit'      => array('20000000', 'PO di atas nilai ini butuh approval Owner'),
+			'cash_variance_limit' => array('10000', 'Selisih kas shift yang masih boleh ditutup tanpa approval'),
+		);
+		foreach ($settings as $key => $s)
+		{
+			$this->db->query(
+				'INSERT IGNORE INTO app_settings (`key`, `value`, `description`) VALUES (?, ?, ?)',
+				array($key, $s[0], $s[1])
+			);
+		}
+
+		$this->db->trans_complete();
+		if ($this->db->trans_status() === FALSE)
+		{
+			$this->_fail('Seed gagal, transaksi dibatalkan.');
+		}
+		echo 'Seed OK: ' . count($permissions) . " permission, $created role baru\n";
+	}
+
+	public function create_admin($username = NULL, $password = NULL)
+	{
+		if ( ! $username OR ! preg_match('/^[a-zA-Z0-9._-]{3,50}$/', $username))
+		{
+			$this->_fail('Username wajib (3-50 karakter: huruf, angka, titik, strip, underscore).');
+		}
+
+		$generated = FALSE;
+		if ($password === NULL)
+		{
+			$password = substr(str_replace(array('+', '/', '='), '', base64_encode(random_bytes(18))), 0, 14);
+			$generated = TRUE;
+		}
+		elseif (strlen($password) < 8)
+		{
+			$this->_fail('Password minimal 8 karakter.');
+		}
+
+		$role = $this->db->where('is_super', 1)->order_by('id')->get('roles')->row_array();
+		if ( ! $role)
+		{
+			$this->_fail('Role Admin belum ada. Jalankan: php public/index.php cli setup');
+		}
+
+		$this->load->model('User_model');
+		$this->load->library('audit_logger', NULL, 'audit');
+		$existing = $this->User_model->find_by_username($username);
+
+		if ($existing)
+		{
+			$this->User_model->set_password($existing['id'], $password, $generated);
+			$this->db->where('id', $existing['id'])->update('users', array('is_active' => 1));
+			$this->db->query('INSERT IGNORE INTO user_roles (user_id, role_id, is_primary) VALUES (?, ?, 0)', array($existing['id'], $role['id']));
+			$user_id = (int) $existing['id'];
+			$action = 'direset';
+		}
+		else
+		{
+			$user_id = $this->User_model->create(array(
+				'username'             => $username,
+				'name'                 => 'Administrator',
+				'email'                => '',
+				'password'             => $password,
+				'is_active'            => 1,
+				'must_change_password' => $generated,
+			), $role['id']);
+			$action = 'dibuat';
+		}
+
+		$this->audit->log('cli_create_admin', array(
+			'user_id' => NULL, 'username' => 'cli', 'table_name' => 'users', 'record_id' => $user_id,
+			'detail' => "Admin '$username' $action lewat CLI",
+		));
+
+		echo "Admin '$username' $action.\n";
+		if ($generated)
+		{
+			echo "Password sementara: $password\n(wajib diganti saat login pertama)\n";
+		}
+	}
+
+	protected function _fail($message)
+	{
+		fwrite(STDERR, "ERROR: $message\n");
+		exit(1);
+	}
+}
