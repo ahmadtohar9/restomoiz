@@ -45,6 +45,7 @@ $admin_nav = array(
 	array('label' => 'Permission Matrix', 'icon' => 'grid-3x3', 'url' => 'admin/roles/matrix', 'perm' => 'admin.roles'),
 	array('label' => 'Audit Log', 'icon' => 'journal-text', 'url' => 'admin/audit', 'perm' => 'admin.audit'),
 	array('label' => 'Pengaturan', 'icon' => 'gear', 'url' => 'admin/settings', 'perm' => 'admin.settings'),
+	array('label' => 'Go-Live Checklist', 'icon' => 'rocket-takeoff', 'url' => 'admin/golive', 'perm' => 'admin.settings'),
 );
 $uri = uri_string();
 $active = function ($url) use ($uri) {
@@ -109,16 +110,25 @@ $active = function ($url) use ($uri) {
 				<?php endforeach; ?>
 			<?php endif; ?>
 
-			<?php if (can('payment.reconcile')): ?>
+			<?php if (can_any(array('payment.reconcile', 'finance.expense'))): ?>
 				<div class="nav-section">Keuangan</div>
-				<a class="nav-link <?= $active('finance/settlements') ?>" href="<?= site_url('finance/settlements') ?>"><i class="bi bi-journal-check"></i> Settlement Harian</a>
-				<a class="nav-link <?= $active('finance/reconciliations') ?>" href="<?= site_url('finance/reconciliations') ?>"><i class="bi bi-bank"></i> Rekonsiliasi Bank</a>
+				<?php if (can('payment.reconcile')): ?>
+					<a class="nav-link <?= $active('finance/settlements') ?>" href="<?= site_url('finance/settlements') ?>"><i class="bi bi-journal-check"></i> Settlement Harian</a>
+					<a class="nav-link <?= $active('finance/reconciliations') ?>" href="<?= site_url('finance/reconciliations') ?>"><i class="bi bi-bank"></i> Rekonsiliasi Bank</a>
+				<?php endif; ?>
+				<?php if (can('finance.expense')): ?>
+					<a class="nav-link <?= $active('finance/expenses') ?>" href="<?= site_url('finance/expenses') ?>"><i class="bi bi-wallet2"></i> Pengeluaran</a>
+				<?php endif; ?>
 			<?php endif; ?>
 
-			<div class="nav-section">Operasional</div>
-			<?php foreach (array('Laporan Keuangan' => 'bar-chart') as $label => $icon): ?>
-				<span class="nav-link disabled" title="Dikerjakan di fase berikutnya"><i class="bi bi-<?= $icon ?>"></i> <?= e($label) ?> <small class="badge text-bg-secondary ms-auto">segera</small></span>
-			<?php endforeach; ?>
+			<?php if (can_any(array('report.operational', 'report.financial'))): ?>
+				<div class="nav-section">Laporan</div>
+				<a class="nav-link <?= uri_string() === 'reports' ? 'active' : '' ?>" href="<?= site_url('reports') ?>"><i class="bi bi-speedometer"></i> Dashboard Eksekutif</a>
+				<a class="nav-link <?= $active('reports/sales') ?>" href="<?= site_url('reports/sales') ?>"><i class="bi bi-bar-chart"></i> Penjualan</a>
+				<?php if (can('report.financial')): ?><a class="nav-link <?= $active('reports/pnl') ?>" href="<?= site_url('reports/pnl') ?>"><i class="bi bi-file-earmark-bar-graph"></i> Laba Rugi</a><?php endif; ?>
+				<a class="nav-link <?= $active('reports/cashiers') ?>" href="<?= site_url('reports/cashiers') ?>"><i class="bi bi-person-badge"></i> Kinerja Kasir</a>
+				<a class="nav-link <?= $active('reports/refunds') ?>" href="<?= site_url('reports/refunds') ?>"><i class="bi bi-arrow-counterclockwise"></i> Analisis Refund</a>
+			<?php endif; ?>
 
 			<?php $visible_admin = array_filter($admin_nav, function ($i) { return can($i['perm']); }); ?>
 			<?php if ($visible_admin): ?>

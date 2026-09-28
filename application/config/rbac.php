@@ -20,7 +20,7 @@ $config['rbac_modules'] = array(
 	'purchase'  => 'Pembelian',
 	'menu'      => 'Menu',
 	'sales'     => 'Penjualan & POS',
-	'payment'   => 'Pembayaran',
+	'payment'   => 'Pembayaran & Keuangan',
 	'report'    => 'Laporan',
 	'admin'     => 'Administrasi',
 );
@@ -67,6 +67,7 @@ $config['rbac_permissions'] = array(
 
 	// Pembayaran
 	'payment.reconcile'      => array('payment', 'Rekonsiliasi & settlement'),
+	'finance.expense'        => array('payment', 'Catat pengeluaran operasional (untuk laba rugi)'),
 
 	// Laporan
 	'report.own_shift'       => array('report', 'Lihat ringkasan shift sendiri'),
@@ -96,7 +97,7 @@ $config['rbac_default_roles'] = array(
 			'inventory.view', 'inventory.view_cost', 'purchase.view', 'purchase.approve', 'purchase.approve_owner',
 			'menu.view', 'menu.view_recipe', 'menu.view_cogs',
 			'sales.refund_approve', 'sales.refund_owner', 'sales.shift_approve',
-			'report.operational', 'report.inventory', 'report.financial',
+			'report.operational', 'report.inventory', 'report.financial', 'finance.expense',
 			'admin.users', 'admin.audit',
 		),
 	),
@@ -137,7 +138,7 @@ $config['rbac_default_roles'] = array(
 		'is_super'    => FALSE,
 		'permissions' => array(
 			'inventory.view', 'inventory.view_cost', 'purchase.view', 'purchase.invoice', 'purchase.payment',
-			'menu.view', 'menu.view_cogs', 'payment.reconcile',
+			'menu.view', 'menu.view_cogs', 'payment.reconcile', 'finance.expense',
 			'report.operational', 'report.inventory', 'report.financial',
 		),
 	),

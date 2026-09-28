@@ -24,7 +24,7 @@
 <?php if (isset($sales_today)): $st = $sales_today; ?>
 <div class="card mb-4">
 	<div class="card-header d-flex align-items-center"><span><i class="bi bi-cash-coin"></i> Penjualan hari ini</span>
-		<a class="ms-auto small" href="<?= site_url('sales/orders') ?>">Transaksi</a></div>
+		<a class="ms-auto small" href="<?= can_any(array('report.operational', 'report.financial')) ? site_url('reports') : site_url('sales/orders') ?>"><?= can_any(array('report.operational', 'report.financial')) ? 'Dashboard eksekutif' : 'Transaksi' ?></a></div>
 	<div class="card-body">
 		<div class="row g-3">
 			<div class="col-6 col-md-3"><div class="stat-label">Pendapatan</div><div class="stat-value fs-4"><?= rupiah($st['revenue']) ?></div></div>
@@ -129,7 +129,7 @@
 			array('Fase 4', 'Menu: varian, resep & COGS, harga terjadwal, promo, barcode & menu online', TRUE),
 			array('Fase 5', 'POS & order: dine-in, takeaway, delivery, dapur, shift kasir', TRUE),
 			array('Fase 6', 'Refund dengan approval, settlement harian, rekonsiliasi bank', TRUE),
-			array('Fase 7', 'Laporan: P&L, pendapatan, dashboard analitik', FALSE),
+			array('Fase 7', 'Laporan: dashboard eksekutif, laba rugi, penjualan, kasir, refund, pengeluaran', TRUE),
 		) as $f): ?>
 		<li class="list-group-item d-flex align-items-center gap-3">
 			<i class="bi <?= $f[2] ? 'bi-check-circle-fill text-success' : 'bi-circle text-secondary' ?>"></i>

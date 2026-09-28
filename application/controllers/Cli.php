@@ -7,6 +7,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *   php public/index.php cli migrate                     Jalankan migration ke versi terbaru
  *   php public/index.php cli seed                        Sinkron permission, role default, settings
  *   php public/index.php cli setup                       migrate + seed
+ *   php public/index.php cli backup [hari_simpan]           Backup database (gzip) ke storage/backups,
+ *                                                        hapus backup lebih lama dari N hari (default 14)
  *   php public/index.php cli create_admin <username> [password]
  *                                                        Buat/reset user Admin. Tanpa password:
  *                                                        dibuatkan acak & wajib ganti saat login.
@@ -24,7 +26,7 @@ class Cli extends CI_Controller {
 
 	public function index()
 	{
-		echo "Perintah: migrate | seed | setup | create_admin <username> [password]\n";
+		echo "Perintah: migrate | seed | setup | backup [hari] | create_admin <username> [password]\n";
 	}
 
 	public function setup()
@@ -144,6 +146,48 @@ class Cli extends CI_Controller {
 			$this->_fail('Seed gagal, transaksi dibatalkan.');
 		}
 		echo 'Seed OK: ' . count($permissions) . ' permission (' . count($new_permissions) . " baru), $created role baru\n";
+	}
+
+	/**
+	 * Backup database memakai utilitas CodeIgniter (PHP murni, tidak butuh
+	 * exec/mysqldump yang biasanya dimatikan di aaPanel).
+	 */
+	public function backup($keep_days = 14)
+	{
+		$keep_days = max(1, (int) $keep_days);
+		$dir = rtrim(dirname(FCPATH), '/') . '/storage/backups/';
+		if ( ! is_dir($dir) && ! @mkdir($dir, 0750, TRUE))
+		{
+			$this->_fail('Folder backup tidak bisa dibuat: ' . $dir);
+		}
+		$this->load->dbutil();
+		$started = microtime(TRUE);
+		$sql = $this->dbutil->backup(array(
+			'format'     => 'txt',
+			'add_drop'   => TRUE,
+			'add_insert' => TRUE,
+			'newline'    => "\n",
+			'foreign_key_checks' => FALSE,
+		));
+		$file = $dir . $this->db->database . '-' . date('Ymd-His') . '.sql.gz';
+		if (file_put_contents($file, gzencode("-- Backup " . $this->db->database . ' ' . date('c') . "\n" . $sql, 9)) === FALSE)
+		{
+			$this->_fail('Gagal menulis file backup.');
+		}
+		@chmod($file, 0640);
+
+		$removed = 0;
+		foreach (glob($dir . '*.sql.gz') as $old)
+		{
+			if (filemtime($old) < time() - $keep_days * 86400)
+			{
+				@unlink($old);
+				$removed++;
+			}
+		}
+		$this->db->query("INSERT INTO app_settings (`key`, `value`, `description`) VALUES ('last_backup_at', ?, 'Waktu backup database terakhir (diisi otomatis)')
+			ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)", array(date('Y-m-d H:i:s')));
+		printf("Backup OK: %s (%s KB, %.1f detik), %d backup lama dihapus\n", $file, number_format(filesize($file) / 1024, 1), microtime(TRUE) - $started, $removed);
 	}
 
 	public function create_admin($username = NULL, $password = NULL)

@@ -19,6 +19,7 @@ class Private_upload {
 		'invoices' => 'purchase.view',
 		'payments' => 'purchase.view',
 		'settlements' => 'payment.reconcile',
+		'expenses' => 'report.financial',
 	);
 
 	public static $mimes = array('jpg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp', 'pdf' => 'application/pdf');

@@ -15,7 +15,8 @@ Aplikasi ini **berdiri sendiri** dan tidak berbagi kode, database, session, maup
 | 4 | Menu: kategori, varian, resep & COGS otomatis, harga normal/member/grosir dengan jadwal & riwayat, promo + simulator, barcode/label, menu online publik, analisis margin | ✅ selesai |
 | 5 | POS (scan barcode, varian, tambahan/topping, promo & kode promo, PPN/service), order dine-in/takeaway/delivery, meja, layar dapur, struk & tiket dapur, pembayaran tunai/debit/kredit/e-wallet, shift kasir dengan approval selisih kas, pelanggan/member | ✅ selesai |
 | 6 | Refund per item/penuh dengan matriks approval, bukti refund, reverse COGS opsional, settlement harian, rekonsiliasi bank bulanan | ✅ selesai |
-| 7 | Laporan keuangan & dashboard analitik | berikutnya |
+| 7 | Dashboard eksekutif, laba rugi bulanan, laporan penjualan (menu, kategori, jam ramai, metode bayar, promo), kinerja kasir, analisis refund, pengeluaran operasional; ekspor CSV & cetak/PDF | ✅ selesai |
+| 8–9 | Backup otomatis, Go-Live Checklist | ✅ tersedia; uji coba & pelatihan oleh tim resto |
 
 ## Struktur
 
@@ -127,6 +128,19 @@ Alur: **PO** (draft → submit → approval) → **Penerimaan barang** (stok mas
 - **Uang kembali**: tunai dari laci shift kasir yang terbuka (mengurangi kas seharusnya), atau metode asal dengan nomor referensi reversal. **Stok**: opsional dikembalikan ke batch asal (reverse COGS, sesuai PRD) atau dicatat sebagai kerugian.
 - **Settlement harian** (`payment.reconcile`): penjualan per kanal − refund dibandingkan setoran tunai, settlement EDC, e-wallet, dan biaya MDR. Verifikasi butuh semua shift ditutup dan catatan jika ada selisih; setelah diverifikasi data terkunci.
 - **Rekonsiliasi bank bulanan**: seharusnya masuk (POS) vs mutasi rekening + dana dalam perjalanan + biaya + penyesuaian; rekening koran disimpan privat.
+
+## Laporan
+
+- **Definisi** (`Report_model`): pendapatan bersih = subtotal − diskon + service − refund (tanpa PPN, karena PPN titipan pajak); dicatat saat bayar, refund saat dana dikembalikan. COGS = COGS item terjual − bahan yang kembali ke stok dari refund pada periode yang sama.
+- **Laba rugi** bulanan: pendapatan per kategori menu → COGS (menu terjual + bahan terbuang/kedaluwarsa/rusak/selisih opname) → laba kotor → beban operasional (menu *Keuangan → Pengeluaran*) → EBIT → bunga/beban lain → laba bersih, dibanding bulan sebelumnya.
+- Grafik dibuat dengan SVG ringan (`public/assets/js/charts.js`): satu seri per grafik, palet biru yang sudah divalidasi kontras & buta warna, tooltip saat hover/fokus keyboard, dan tabel data untuk setiap grafik.
+- Semua laporan bisa diekspor CSV; tombol cetak menghasilkan versi rapi untuk *Simpan sebagai PDF* di browser.
+
+## Operasional
+
+- **Backup**: `php public/index.php cli backup [hari]` membuat dump database terkompresi di `storage/backups/` (PHP murni, tanpa `exec`) dan menghapus backup yang lebih lama dari N hari (default 14). Jadwalkan harian lewat cron / aaPanel Cron, dan salin backup ke lokasi lain (off-site) secara berkala.
+- **Go-Live Checklist** (*Administrasi → Go-Live Checklist*): pengecekan otomatis kesiapan (migration, SSL, backup, profil resto, data master, user per role, uji alur) + daftar manual perangkat & tim (PRD bagian 6).
+- **Upgrade**: `git pull` lalu `php public/index.php cli setup` (migration + seed permission baru). Backup dulu sebelum upgrade.
 
 ## Keamanan
 
