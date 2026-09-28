@@ -120,6 +120,9 @@ class Cli extends CI_Controller {
 			'dead_stock_days'     => array('60', 'Bahan dianggap dead stock jika tidak keluar selama (hari)'),
 			'invoice_match_tolerance' => array('1', 'Toleransi selisih invoice vs barang diterima (persen)'),
 			'po_variance_flag'    => array('5', 'Tandai PO jika nilai aktual berbeda dari PO lebih dari (persen)'),
+			'menu_auto_oos'       => array('1', 'Menu otomatis "habis" jika stok bahan resep tidak cukup untuk 1 porsi (1 = ya)'),
+			'menu_margin_warning' => array('40', 'Tandai menu dengan margin kotor di bawah (persen)'),
+			'public_menu_enabled' => array('1', 'Aktifkan menu online publik untuk QR pelanggan (1 = ya)'),
 		);
 		foreach ($settings as $key => $s)
 		{

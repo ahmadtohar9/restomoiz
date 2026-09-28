@@ -281,3 +281,94 @@
 		run();
 	});
 })();
+
+/* ---------- Menu ---------- */
+(function () {
+	'use strict';
+
+	var rp = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+
+	// Salin baris terakhir dengan indeks name[...] baru (varian menu, isi paket promo)
+	var cloneRow = function (box, rowSel) {
+		var rows = box.querySelectorAll(rowSel);
+		var last = rows[rows.length - 1];
+		var clone = last.cloneNode(true);
+		var next = rows.length + 100 + Math.floor(Math.random() * 1000);
+		clone.querySelectorAll('[name]').forEach(function (el) {
+			el.name = el.name.replace(/\[\d+\]/, '[' + next + ']');
+			if (el.type === 'checkbox') { el.checked = true; }
+			else if (el.name.indexOf('[qty]') > -1) { el.value = 1; }
+			else if (el.type !== 'hidden') { el.value = ''; }
+			else { el.value = 0; }
+			if (el.id) { el.id = el.id + next; }
+		});
+		clone.querySelectorAll('label[for]').forEach(function (l) { l.setAttribute('for', l.getAttribute('for') + next); });
+		clone.querySelectorAll('.bg-light').forEach(function (s) {
+			var i = document.createElement('input');
+			i.className = 'form-control form-control-sm';
+			i.type = 'number'; i.min = 0; i.step = 'any'; i.placeholder = 'Harga';
+			i.name = clone.querySelector('[name$="[name]"]').name.replace('[name]', '[price]');
+			s.replaceWith(i);
+		});
+		box.appendChild(clone);
+	};
+	var addVariant = document.getElementById('add-variant');
+	if (addVariant) addVariant.addEventListener('click', function () { cloneRow(document.getElementById('variant-rows'), '.variant-row'); });
+	var addBundle = document.getElementById('add-bundle');
+	if (addBundle) addBundle.addEventListener('click', function () { cloneRow(document.getElementById('bundle-rows'), '.bundle-row'); });
+
+	// Form promo: tampilkan field sesuai jenis & cakupan
+	var promo = document.getElementById('promo-form');
+	if (promo) {
+		var sync = function () {
+			var type = promo.querySelector('#type').value;
+			promo.querySelectorAll('.pt').forEach(function (el) { el.style.display = el.classList.contains('pt-' + type) ? '' : 'none'; });
+			var scope = (promo.querySelector('[name=scope]:checked') || {}).value;
+			promo.querySelectorAll('.scope').forEach(function (el) { el.style.display = el.classList.contains('scope-' + scope) ? '' : 'none'; });
+		};
+		promo.addEventListener('change', sync);
+		sync();
+	}
+
+	// Resep: biaya per baris & COGS total (harga beli terakhir x qty x faktor)
+	var doc = document.getElementById('stock-doc');
+	if (doc && doc.getAttribute('data-direction') === 'recipe' && document.getElementById('recipe-total')) {
+		var calc = function () {
+			var total = 0;
+			doc.querySelectorAll('.doc-line').forEach(function (row) {
+				var sel = row.querySelector('.line-ingredient');
+				var opt = sel.options[sel.selectedIndex];
+				var unit = row.querySelector('.line-unit').selectedOptions[0];
+				var cell = row.querySelector('.recipe-cost');
+				var q = parseFloat(row.querySelector('.line-qty').value) || 0;
+				if (!opt || !opt.value || !unit) { cell.textContent = ''; return; }
+				var cost = q * parseFloat(unit.getAttribute('data-factor')) * (parseFloat(opt.getAttribute('data-price')) || 0);
+				total += cost;
+				cell.textContent = cost ? rp.format(cost) : (q ? 'tanpa harga' : '');
+			});
+			document.getElementById('recipe-total').textContent = total ? rp.format(total) : '-';
+			var m = document.getElementById('recipe-margin');
+			if (m) {
+				var price = parseFloat(m.getAttribute('data-price'));
+				m.textContent = price && total ? ((price - total) / price * 100).toFixed(1).replace('.', ',') + '%' : '-';
+			}
+		};
+		doc.addEventListener('input', calc);
+		doc.addEventListener('change', function () { setTimeout(calc, 0); });
+		document.getElementById('add-line').addEventListener('click', function () { setTimeout(calc, 0); });
+		setTimeout(calc, 0);
+	}
+
+	// Form harga: preview margin
+	var priceInput = document.getElementById('price');
+	var marginHint = document.getElementById('price-margin');
+	if (priceInput && marginHint && priceInput.getAttribute('data-cogs')) {
+		var cogs = parseFloat(priceInput.getAttribute('data-cogs'));
+		var show = function () {
+			var p = parseFloat(priceInput.value) || 0;
+			marginHint.textContent = p && cogs ? 'Margin ' + ((p - cogs) / p * 100).toFixed(1).replace('.', ',') + '% (COGS ' + rp.format(cogs) + ')' : '';
+		};
+		priceInput.addEventListener('input', show);
+		show();
+	}
+})();

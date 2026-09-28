@@ -3,8 +3,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  * Kategori bahan baku bertingkat (Makanan > Daging, Sayur, ...).
+ * Diturunkan oleh Menu_category_model untuk kategori menu.
  */
 class Category_model extends CI_Model {
+
+	protected $table = 'ingredient_categories';
+	protected $item_table = 'ingredients';
+	protected $order = 'c.name ASC';
 
 	/**
 	 * Semua kategori dalam urutan pohon, dengan 'depth', 'path' (Induk › Anak),
@@ -13,10 +18,10 @@ class Category_model extends CI_Model {
 	public function tree($only_active = FALSE)
 	{
 		$this->db->select('c.*, COUNT(i.id) AS ingredient_count')
-			->from('ingredient_categories c')
-			->join('ingredients i', 'i.category_id = c.id', 'left')
+			->from($this->table . ' c')
+			->join($this->item_table . ' i', 'i.category_id = c.id', 'left')
 			->group_by('c.id')
-			->order_by('c.name', 'ASC');
+			->order_by($this->order);
 		if ($only_active)
 		{
 			$this->db->where('c.is_active', 1);
@@ -60,7 +65,7 @@ class Category_model extends CI_Model {
 
 	public function find($id)
 	{
-		return $this->db->where('id', (int) $id)->get('ingredient_categories')->row_array();
+		return $this->db->where('id', (int) $id)->get($this->table)->row_array();
 	}
 
 	/** id kategori beserta seluruh turunannya (untuk filter & laporan). */
@@ -70,7 +75,7 @@ class Category_model extends CI_Model {
 		$queue = array((int) $id);
 		while ($queue)
 		{
-			$rows = $this->db->select('id')->where_in('parent_id', $queue)->get('ingredient_categories')->result_array();
+			$rows = $this->db->select('id')->where_in('parent_id', $queue)->get($this->table)->result_array();
 			$queue = array_map('intval', array_column($rows, 'id'));
 			$ids = array_merge($ids, $queue);
 		}
@@ -85,7 +90,7 @@ class Category_model extends CI_Model {
 		{
 			$this->db->where('id !=', (int) $except_id);
 		}
-		return $this->db->count_all_results('ingredient_categories') > 0;
+		return $this->db->count_all_results($this->table) > 0;
 	}
 
 	public function save(array $data, $id = NULL)
@@ -98,29 +103,29 @@ class Category_model extends CI_Model {
 		);
 		if ($id)
 		{
-			$this->db->where('id', (int) $id)->update('ingredient_categories', $row);
+			$this->db->where('id', (int) $id)->update($this->table, $row);
 			return (int) $id;
 		}
-		$this->db->insert('ingredient_categories', $row);
+		$this->db->insert($this->table, $row);
 		return (int) $this->db->insert_id();
 	}
 
 	/** Alasan kategori tidak bisa dihapus, atau NULL kalau boleh. */
 	public function delete_blocker($id)
 	{
-		if ($this->db->where('parent_id', (int) $id)->count_all_results('ingredient_categories') > 0)
+		if ($this->db->where('parent_id', (int) $id)->count_all_results($this->table) > 0)
 		{
 			return 'Kategori masih punya sub-kategori.';
 		}
-		if ($this->db->where('category_id', (int) $id)->count_all_results('ingredients') > 0)
+		if ($this->db->where('category_id', (int) $id)->count_all_results($this->item_table) > 0)
 		{
-			return 'Kategori masih dipakai bahan baku.';
+			return $this->item_table === 'ingredients' ? 'Kategori masih dipakai bahan baku.' : 'Kategori masih dipakai menu.';
 		}
 		return NULL;
 	}
 
 	public function delete($id)
 	{
-		return $this->db->where('id', (int) $id)->delete('ingredient_categories');
+		return $this->db->where('id', (int) $id)->delete($this->table);
 	}
 }

@@ -21,6 +21,14 @@ $purchase_nav = array(
 	array('label' => 'Pembayaran', 'icon' => 'credit-card', 'url' => 'purchase/payments', 'perm' => NULL),
 	array('label' => 'Laporan Pembelian', 'icon' => 'graph-up', 'url' => 'purchase/reports', 'perm' => 'report.inventory'),
 );
+$menu_nav = array(
+	array('label' => 'Daftar Menu', 'icon' => 'journal-richtext', 'url' => 'menu/items', 'perm' => NULL),
+	array('label' => 'Kategori Menu', 'icon' => 'diagram-3', 'url' => 'menu/categories', 'perm' => NULL),
+	array('label' => 'Promo', 'icon' => 'percent', 'url' => 'menu/promos', 'perm' => 'menu.view'),
+	array('label' => 'Simulator Promo', 'icon' => 'calculator', 'url' => 'menu/promos/simulator', 'perm' => 'menu.view'),
+	array('label' => 'Barcode & Label', 'icon' => 'upc-scan', 'url' => 'menu/labels', 'perm' => 'menu.view'),
+	array('label' => 'Analisis Margin', 'icon' => 'graph-up-arrow', 'url' => 'menu/analysis', 'perm' => 'menu.view_cogs'),
+);
 $admin_nav = array(
 	array('label' => 'User', 'icon' => 'people', 'url' => 'admin/users', 'perm' => 'admin.users'),
 	array('label' => 'Role', 'icon' => 'person-badge', 'url' => 'admin/roles', 'perm' => 'admin.roles'),
@@ -73,8 +81,18 @@ $active = function ($url) use ($uri) {
 				<?php endforeach; ?>
 			<?php endif; ?>
 
+			<?php if (can_any(array('menu.view', 'menu.view_recipe'))): ?>
+				<div class="nav-section">Menu</div>
+				<?php foreach ($menu_nav as $item): if ($item['perm'] && ! can($item['perm'])) continue; ?>
+					<a class="nav-link <?= $item['url'] === 'menu/promos' ? (uri_string() === 'menu/promos' || preg_match('#^menu/promos/(create|edit)#', uri_string()) ? 'active' : '') : $active($item['url']) ?>" href="<?= site_url($item['url']) ?>"><i class="bi bi-<?= $item['icon'] ?>"></i> <?= e($item['label']) ?></a>
+				<?php endforeach; ?>
+				<?php if (setting('public_menu_enabled', '1') === '1'): ?>
+					<a class="nav-link" href="<?= site_url('menu-online') ?>" target="_blank"><i class="bi bi-qr-code"></i> Menu Online <i class="bi bi-box-arrow-up-right small ms-auto"></i></a>
+				<?php endif; ?>
+			<?php endif; ?>
+
 			<div class="nav-section">Operasional</div>
-			<?php foreach (array('Menu' => 'journal-richtext', 'POS & Penjualan' => 'cash-coin', 'Laporan Keuangan' => 'bar-chart') as $label => $icon): ?>
+			<?php foreach (array('POS & Penjualan' => 'cash-coin', 'Laporan Keuangan' => 'bar-chart') as $label => $icon): ?>
 				<span class="nav-link disabled" title="Dikerjakan di fase berikutnya"><i class="bi bi-<?= $icon ?>"></i> <?= e($label) ?> <small class="badge text-bg-secondary ms-auto">segera</small></span>
 			<?php endforeach; ?>
 

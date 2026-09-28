@@ -12,8 +12,9 @@ Aplikasi ini **berdiri sendiri** dan tidak berbagi kode, database, session, maup
 | 1 | Fondasi & RBAC: login, user, role, permission matrix, custom permission, audit log, pengaturan | ✅ selesai |
 | 2 | Inventory: bahan baku, kategori bertingkat, supplier, stok masuk/keluar FIFO, stock opname, peringatan stok, laporan nilai/aging/slow-moving/dead stock | ✅ selesai |
 | 3 | Pembelian: PO dengan approval berjenjang, penerimaan barang (GR), invoice supplier dengan 3-way matching, pembayaran & verifikasi, laporan belanja/tren harga/kinerja supplier/aging hutang | ✅ selesai |
-| 4 | Menu: resep, COGS, harga, promo, barcode | berikutnya |
-| 5–7 | POS, Refund & Settlement, Laporan keuangan | direncanakan |
+| 4 | Menu: kategori, varian, resep & COGS otomatis, harga normal/member/grosir dengan jadwal & riwayat, promo + simulator, barcode/label, menu online publik, analisis margin | ✅ selesai |
+| 5 | POS & order (dine-in, takeaway, delivery), shift kasir | berikutnya |
+| 6–7 | Refund & Settlement, Laporan keuangan | direncanakan |
 
 ## Struktur
 
@@ -99,6 +100,16 @@ Alur: **PO** (draft → submit → approval) → **Penerimaan barang** (stok mas
 - **Pembayaran** bisa sebagian. Jumlah yang bisa diajukan sudah dikurangi pembayaran yang masih menunggu verifikasi, jadi tidak bisa bayar dobel. Untuk kartu kredit hanya disimpan 4 digit terakhir dan kode otorisasi.
 - **Lampiran** (surat jalan, invoice, bukti bayar) disimpan di `storage/` di luar document root dan hanya bisa diunduh lewat `files/view` oleh user dengan `purchase.view`. Validasi file: gambar dengan `getimagesize()`, PDF dengan signature `%PDF-`.
 
+## Menu
+
+- **Varian**: setiap menu punya minimal satu varian (menu tanpa pilihan = "Reguler"). Harga, resep, dan barcode melekat pada varian.
+- **COGS** per porsi = Σ (qty resep × harga beli terakhir bahan); kalau bahan belum pernah dibeli, dipakai rata-rata nilai stok. Riwayat COGS disimpan harian (`menu_cogs_history`) otomatis saat daftar menu dibuka dan setiap resep/harga berubah.
+- **Harga** disimpan sebagai riwayat (`menu_variant_prices`): harga yang berlaku = `effective_from` terbaru yang sudah lewat, sehingga perubahan harga bisa dijadwalkan dan selalu punya alasan.
+- **Ketersediaan**: porsi yang bisa dibuat = min(stok bahan ÷ qty resep). Jika `menu_auto_oos` aktif, menu otomatis tampil "habis" saat stok tidak cukup untuk 1 porsi.
+- **Promo** dihitung oleh `Promo_engine` (dipakai simulator sekarang dan POS nanti). Promo "bisa digabung" dijumlahkan; promo lain berdiri sendiri; mesin memilih kombinasi yang paling menguntungkan pelanggan. Tes regresi: `php tests/promo_engine_test.php`.
+- **Barcode**: kode internal EAN-13 berprefix 20 (rentang in-store GS1), digambar sebagai CODE128 SVG oleh `application/libraries/Barcode.php` (tabel pola sudah dicocokkan dengan JsBarcode). QR di label memakai `qrcode-generator` (MIT) yang disimpan di `public/assets/vendor`.
+- **Menu online** publik di `/menu-online` (bisa dimatikan lewat `public_menu_enabled`). Kategori bertanda *internal* tidak ditampilkan.
+
 ## Keamanan
 
 - Password di-hash dengan `password_hash()` (bcrypt), dengan aturan minimal 8 karakter berisi huruf dan angka.
@@ -124,3 +135,5 @@ Beberapa hal di PRD diubah saat implementasi:
 | Email ke approver / reminder hutang otomatis | Daftar tugas di dashboard (approval, barang datang, invoice, verifikasi, jatuh tempo) | Sama: email belum tersedia |
 | Jurnal akuntansi (Dr Inventory / Cr AP) | Belum ada modul GL; hutang dilacak lewat invoice & pembayaran | Modul keuangan di fase 7 |
 | Verifikasi pembayaran oleh Accounting | Oleh user `purchase.payment` yang berbeda dari penginput | Kontrol internal: input dan verifikasi dipisah |
+| Recurrence promo bulanan | Hari dalam minggu + jam + rentang tanggal | Mencakup harian/mingguan/happy hour; pola bulanan bisa ditambah bila dibutuhkan |
+| Dynamic pricing (opsional di PRD) | Belum | Ditandai *future* di PRD |

@@ -18,3 +18,6 @@ $route['purchase'] = 'purchase/orders';
 $route['purchase/orders/print/(:num)'] = 'purchase/orders/print_po/$1';
 $route['purchase/reports'] = 'purchase/reports/index/supplier';
 $route['purchase/reports/(supplier|category|price|performance|aging)'] = 'purchase/reports/index/$1';
+
+$route['menu'] = 'menu/items';
+$route['menu/labels/print'] = 'menu/labels/print_labels';

@@ -102,7 +102,7 @@
 			array('Fase 1', 'Fondasi & RBAC: login, user, role, permission, audit log', TRUE),
 			array('Fase 2', 'Inventory: bahan baku, supplier, stok FIFO, opname, peringatan, laporan', TRUE),
 			array('Fase 3', 'Pembelian: PO dengan approval, penerimaan barang, invoice (3-way match), pembayaran supplier', TRUE),
-			array('Fase 4', 'Menu: resep, COGS, barcode', FALSE),
+			array('Fase 4', 'Menu: varian, resep & COGS, harga terjadwal, promo, barcode & menu online', TRUE),
 			array('Fase 5', 'POS & order: dine-in, takeaway, delivery, shift', FALSE),
 			array('Fase 6', 'Refund & settlement', FALSE),
 			array('Fase 7', 'Laporan: P&L, pendapatan, dashboard analitik', FALSE),
