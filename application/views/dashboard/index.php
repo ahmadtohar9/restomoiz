@@ -35,6 +35,10 @@
 		<div class="d-flex flex-wrap gap-3 mt-3 small">
 			<?php if ($st['open']): ?><a href="<?= site_url('sales/orders?status=open') ?>"><span class="badge text-bg-warning"><?= (int) $st['open'] ?></span> pesanan belum dibayar</a><?php endif; ?>
 			<?php if ($st['pending_shifts']): ?><a href="<?= site_url('sales/shifts') ?>"><span class="badge text-bg-danger"><?= (int) $st['pending_shifts'] ?></span> shift menunggu approval selisih kas</a><?php endif; ?>
+			<?php if ($st['refunds_pending']): ?><a href="<?= site_url('sales/refunds?status=pending_approval') ?>"><span class="badge text-bg-danger"><?= (int) $st['refunds_pending'] ?></span> refund menunggu approval</a><?php endif; ?>
+			<?php if ($st['refunds_to_pay']): ?><a href="<?= site_url('sales/refunds?status=approved') ?>"><span class="badge text-bg-info"><?= (int) $st['refunds_to_pay'] ?></span> refund disetujui, uang belum dikembalikan</a><?php endif; ?>
+			<?php if ($st['refund_total'] > 0): ?><span class="text-muted">Refund hari ini <?= rupiah($st['refund_total']) ?></span><?php endif; ?>
+			<?php if ($st['unsettled']): ?><a href="<?= site_url('finance/settlements') ?>"><span class="badge text-bg-warning"><?= (int) $st['unsettled'] ?></span> hari belum di-settle</a><?php endif; ?>
 			<?php if ($top_today): ?><span class="text-muted">Terlaris: <?= e(implode(', ', array_map(function ($t) { return $t['name'] . ' (' . (int) $t['qty'] . ')'; }, $top_today))) ?></span><?php endif; ?>
 		</div>
 	</div>
@@ -124,7 +128,7 @@
 			array('Fase 3', 'Pembelian: PO dengan approval, penerimaan barang, invoice (3-way match), pembayaran supplier', TRUE),
 			array('Fase 4', 'Menu: varian, resep & COGS, harga terjadwal, promo, barcode & menu online', TRUE),
 			array('Fase 5', 'POS & order: dine-in, takeaway, delivery, dapur, shift kasir', TRUE),
-			array('Fase 6', 'Refund & settlement', FALSE),
+			array('Fase 6', 'Refund dengan approval, settlement harian, rekonsiliasi bank', TRUE),
 			array('Fase 7', 'Laporan: P&L, pendapatan, dashboard analitik', FALSE),
 		) as $f): ?>
 		<li class="list-group-item d-flex align-items-center gap-3">

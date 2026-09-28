@@ -35,6 +35,7 @@ $sales_nav = array(
 	array('label' => 'Dapur', 'icon' => 'fire', 'url' => 'sales/kitchen', 'any' => array('sales.kitchen', 'sales.order', 'sales.process')),
 	array('label' => 'Transaksi', 'icon' => 'receipt', 'url' => 'sales/orders', 'any' => array('sales.process', 'sales.order', 'sales.edit_order', 'report.operational')),
 	array('label' => 'Meja', 'icon' => 'grid-3x3-gap', 'url' => 'sales/tables', 'any' => array('sales.process', 'sales.order', 'sales.edit_order')),
+	array('label' => 'Refund', 'icon' => 'arrow-counterclockwise', 'url' => 'sales/refunds', 'any' => array('sales.refund', 'sales.refund_approve', 'sales.refund_owner', 'report.operational', 'report.financial')),
 	array('label' => 'Shift Kasir', 'icon' => 'clock-history', 'url' => 'sales/shifts', 'any' => array('sales.shift', 'sales.shift_approve', 'report.operational', 'report.own_shift')),
 	array('label' => 'Pelanggan', 'icon' => 'person-vcard', 'url' => 'sales/customers', 'any' => array('sales.process', 'sales.order', 'sales.edit_order')),
 );
@@ -108,8 +109,14 @@ $active = function ($url) use ($uri) {
 				<?php endforeach; ?>
 			<?php endif; ?>
 
+			<?php if (can('payment.reconcile')): ?>
+				<div class="nav-section">Keuangan</div>
+				<a class="nav-link <?= $active('finance/settlements') ?>" href="<?= site_url('finance/settlements') ?>"><i class="bi bi-journal-check"></i> Settlement Harian</a>
+				<a class="nav-link <?= $active('finance/reconciliations') ?>" href="<?= site_url('finance/reconciliations') ?>"><i class="bi bi-bank"></i> Rekonsiliasi Bank</a>
+			<?php endif; ?>
+
 			<div class="nav-section">Operasional</div>
-			<?php foreach (array('Refund & Settlement' => 'arrow-counterclockwise', 'Laporan Keuangan' => 'bar-chart') as $label => $icon): ?>
+			<?php foreach (array('Laporan Keuangan' => 'bar-chart') as $label => $icon): ?>
 				<span class="nav-link disabled" title="Dikerjakan di fase berikutnya"><i class="bi bi-<?= $icon ?>"></i> <?= e($label) ?> <small class="badge text-bg-secondary ms-auto">segera</small></span>
 			<?php endforeach; ?>
 

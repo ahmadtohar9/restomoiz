@@ -23,3 +23,5 @@ $route['menu'] = 'menu/items';
 $route['menu/labels/print'] = 'menu/labels/print_labels';
 
 $route['sales'] = 'sales/orders';
+
+$route['finance'] = 'finance/settlements';

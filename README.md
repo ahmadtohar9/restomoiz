@@ -14,8 +14,8 @@ Aplikasi ini **berdiri sendiri** dan tidak berbagi kode, database, session, maup
 | 3 | Pembelian: PO dengan approval berjenjang, penerimaan barang (GR), invoice supplier dengan 3-way matching, pembayaran & verifikasi, laporan belanja/tren harga/kinerja supplier/aging hutang | ✅ selesai |
 | 4 | Menu: kategori, varian, resep & COGS otomatis, harga normal/member/grosir dengan jadwal & riwayat, promo + simulator, barcode/label, menu online publik, analisis margin | ✅ selesai |
 | 5 | POS (scan barcode, varian, tambahan/topping, promo & kode promo, PPN/service), order dine-in/takeaway/delivery, meja, layar dapur, struk & tiket dapur, pembayaran tunai/debit/kredit/e-wallet, shift kasir dengan approval selisih kas, pelanggan/member | ✅ selesai |
-| 6 | Refund & Settlement | berikutnya |
-| 7 | Laporan keuangan & dashboard analitik | direncanakan |
+| 6 | Refund per item/penuh dengan matriks approval, bukti refund, reverse COGS opsional, settlement harian, rekonsiliasi bank bulanan | ✅ selesai |
+| 7 | Laporan keuangan & dashboard analitik | berikutnya |
 
 ## Struktur
 
@@ -119,6 +119,14 @@ Alur: **PO** (draft → submit → approval) → **Penerimaan barang** (stok mas
 - **Pembayaran** butuh shift kasir yang terbuka. Kartu: hanya jenis, 4 digit terakhir, dan kode approval EDC. Kuota promo dicek ulang dengan kunci baris saat bayar.
 - **Shift**: kas seharusnya = modal + penjualan tunai − refund tunai. Selisih di atas `cash_variance_limit` wajib diberi catatan dan menunggu approval `sales.shift_approve` oleh orang lain.
 - **Layar dapur** refresh otomatis (`kitchen_refresh_seconds`) dengan bunyi notifikasi: dapur menandai dimasak/siap, pelayan/kasir menandai diantar.
+
+## Refund & Settlement
+
+- **Refund** (`Refund_service`) diajukan dari detail transaksi lunas, per item & qty. Nilai = (jumlah baris − diskon) proporsional + bagian service & PPN; refund yang menghabiskan item mendapat sisa persis sehingga total refund tidak pernah melebihi yang dibayar.
+- **Approval**: < `refund_auto_limit` dan ≤ `refund_auto_minutes` sejak bayar → kasir langsung; di atas itu → Manajer (`sales.refund_approve`); > `refund_owner_limit` → Owner (`sales.refund_owner`). Approver harus orang lain dari pengaju. Status: menunggu approval → disetujui → selesai (uang dikembalikan) / ditolak.
+- **Uang kembali**: tunai dari laci shift kasir yang terbuka (mengurangi kas seharusnya), atau metode asal dengan nomor referensi reversal. **Stok**: opsional dikembalikan ke batch asal (reverse COGS, sesuai PRD) atau dicatat sebagai kerugian.
+- **Settlement harian** (`payment.reconcile`): penjualan per kanal − refund dibandingkan setoran tunai, settlement EDC, e-wallet, dan biaya MDR. Verifikasi butuh semua shift ditutup dan catatan jika ada selisih; setelah diverifikasi data terkunci.
+- **Rekonsiliasi bank bulanan**: seharusnya masuk (POS) vs mutasi rekening + dana dalam perjalanan + biaya + penyesuaian; rekening koran disimpan privat.
 
 ## Keamanan
 

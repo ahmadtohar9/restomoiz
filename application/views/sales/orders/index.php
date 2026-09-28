@@ -39,7 +39,8 @@ $st = array('open' => array('Belum bayar', 'warning'), 'paid' => array('Lunas', 
 					<td class="text-center"><?= (int) $o['item_count'] ?></td>
 					<td class="text-end"><?= rupiah($o['total']) ?></td>
 					<td class="small"><?= $o['payment_method'] ? e(Promo_engine::$payment_methods[$o['payment_method']]) : '-' ?></td>
-					<td><span class="badge text-bg-<?= $st[$o['status']][1] ?>"><?= $st[$o['status']][0] ?></span></td>
+					<td><span class="badge text-bg-<?= $st[$o['status']][1] ?>"><?= $st[$o['status']][0] ?></span>
+						<?php if ($o['refund_status'] !== 'none'): ?><span class="badge text-bg-dark"><?= $o['refund_status'] === 'full' ? 'refund penuh' : 'refund sebagian' ?></span><?php endif; ?></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>

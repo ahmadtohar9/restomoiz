@@ -15,6 +15,7 @@ class Orders extends MY_Controller {
 			$this->require_permission('sales.process');
 		}
 		$this->load->library('pos_service', NULL, 'pos');
+		$this->load->library('refund_service', NULL, 'refund'); // label status refund
 	}
 
 	public function index()
@@ -89,6 +90,7 @@ class Orders extends MY_Controller {
 			'items'  => $items,
 			'promos' => $this->db->where('order_id', $o['id'])->get('order_promos')->result_array(),
 			'quote'  => $quote,
+			'refunds'=> $this->db->table_exists('order_refunds') ? $this->db->where('order_id', $o['id'])->order_by('id')->get('order_refunds')->result_array() : array(),
 		));
 	}
 

@@ -20,6 +20,9 @@ $can_cogs = can('menu.view_cogs');
 						<?php endif; ?>
 						<a class="btn btn-sm btn-outline-secondary" href="<?= site_url('sales/orders/ticket/' . $o['id']) ?>" target="_blank"><i class="bi bi-fire"></i> Tiket dapur</a>
 						<?php if ($o['status'] === 'paid'): ?><a class="btn btn-sm btn-outline-primary" href="<?= site_url('sales/orders/receipt/' . $o['id']) ?>" target="_blank"><i class="bi bi-printer"></i> Struk</a><?php endif; ?>
+						<?php if ($o['status'] === 'paid' && $o['refund_status'] !== 'full' && can_any(array('sales.refund', 'sales.refund_approve', 'sales.refund_owner'))): ?>
+							<a class="btn btn-sm btn-outline-danger" href="<?= site_url('sales/refunds/create/' . $o['id']) ?>"><i class="bi bi-arrow-counterclockwise"></i> Refund</a>
+						<?php endif; ?>
 						<?php if ($o['order_type'] === 'delivery' && ! $o['delivered_at'] && $o['status'] !== 'void' && can_any(array('sales.process', 'sales.order'))): ?>
 							<?= form_open('sales/orders/deliver/' . $o['id'], array('class' => 'd-inline')) ?><button class="btn btn-sm btn-outline-success"><i class="bi bi-check2-all"></i> Sudah diantar</button><?= form_close() ?>
 						<?php endif; ?>
@@ -95,6 +98,19 @@ $can_cogs = can('menu.view_cogs');
 		</table>
 	</div>
 </div>
+
+<?php if ($refunds): ?>
+<div class="card mb-3">
+	<div class="card-header">Refund <?= $o['refund_status'] === 'full' ? '<span class="badge text-bg-dark">penuh</span>' : ($o['refund_status'] === 'partial' ? '<span class="badge text-bg-warning">sebagian</span>' : '') ?>
+		<span class="small text-muted fw-normal ms-2">sudah dikembalikan <?= rupiah($o['refunded_amount']) ?></span></div>
+	<ul class="list-group list-group-flush small">
+		<?php foreach ($refunds as $rf): $rs = Refund_service::$status[$rf['status']]; ?>
+			<li class="list-group-item d-flex gap-2"><a href="<?= site_url('sales/refunds/show/' . $rf['id']) ?>"><?= e($rf['refund_number']) ?></a>
+				<span><?= e($rf['reason']) ?></span><span class="ms-auto"><?= rupiah($rf['refund_amount']) ?></span><span class="badge text-bg-<?= $rs[1] ?>"><?= e($rs[0]) ?></span></li>
+		<?php endforeach; ?>
+	</ul>
+</div>
+<?php endif; ?>
 
 <?php if ($o['status'] === 'open' && can_any(array('sales.process', 'sales.edit_order'))): ?>
 <div class="card border-danger-subtle">
