@@ -19,6 +19,13 @@ class Dashboard extends MY_Controller {
 			);
 		}
 
+		if (can('inventory.view'))
+		{
+			$this->load->model('Stock_model');
+			$data['stock_alerts'] = $this->Stock_model->alert_counts();
+			$data['stock_totals'] = $this->Stock_model->totals();
+		}
+
 		$this->render('dashboard/index', $data);
 	}
 }

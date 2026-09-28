@@ -101,3 +101,74 @@ if ( ! function_exists('validate_password'))
 		return $errors;
 	}
 }
+
+if ( ! function_exists('setting'))
+{
+	/** Nilai dari tabel app_settings (di-cache per request). */
+	function setting($key, $default = NULL)
+	{
+		static $cache = NULL;
+		if ($cache === NULL)
+		{
+			$CI =& get_instance();
+			$cache = array();
+			foreach ($CI->db->get('app_settings')->result_array() as $row)
+			{
+				$cache[$row['key']] = $row['value'];
+			}
+		}
+		return isset($cache[$key]) && $cache[$key] !== '' ? $cache[$key] : $default;
+	}
+}
+
+if ( ! function_exists('qty'))
+{
+	/** Format jumlah stok: 1.250,5 (tanpa nol di belakang koma). */
+	function qty($value, $decimals = 3)
+	{
+		$formatted = number_format((float) $value, $decimals, ',', '.');
+		return strpos($formatted, ',') !== FALSE ? rtrim(rtrim($formatted, '0'), ',') : $formatted;
+	}
+}
+
+if ( ! function_exists('num_in'))
+{
+	/**
+	 * Parse input <input type="number"> (desimal selalu titik) ke float.
+	 * Kosong = $empty; tidak valid = NAN (cek dengan is_nan()).
+	 */
+	function num_in($value, $empty = 0.0)
+	{
+		$value = trim((string) $value);
+		if ($value === '')
+		{
+			return $empty;
+		}
+		return is_numeric($value) ? (float) $value : NAN;
+	}
+}
+
+if ( ! function_exists('send_csv'))
+{
+	/**
+	 * Kirim file CSV (UTF-8 dengan BOM supaya rapi di Excel) lalu hentikan request.
+	 * Sel yang diawali = + - @ diberi tanda kutip untuk mencegah formula injection.
+	 */
+	function send_csv($filename, array $header, $rows)
+	{
+		header('Content-Type: text/csv; charset=utf-8');
+		header('Content-Disposition: attachment; filename="' . preg_replace('/[^A-Za-z0-9._-]/', '_', $filename) . '"');
+		$out = fopen('php://output', 'w');
+		fwrite($out, "\xEF\xBB\xBF");
+		fputcsv($out, $header);
+		foreach ($rows as $row)
+		{
+			fputcsv($out, array_map(function ($v) {
+				$v = (string) $v;
+				return ($v !== '' && strpos('=+-@', $v[0]) !== FALSE && ! is_numeric($v)) ? "'" . $v : $v;
+			}, $row));
+		}
+		fclose($out);
+		exit;
+	}
+}

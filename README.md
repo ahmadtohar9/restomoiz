@@ -10,8 +10,9 @@ Aplikasi ini **berdiri sendiri** dan tidak berbagi kode, database, session, maup
 | Fase | Isi | Status |
 |------|-----|--------|
 | 1 | Fondasi & RBAC: login, user, role, permission matrix, custom permission, audit log, pengaturan | ✅ selesai |
-| 2 | Inventory | berikutnya |
-| 3–7 | Pembelian, Menu, POS, Refund & Settlement, Laporan | direncanakan |
+| 2 | Inventory: bahan baku, kategori bertingkat, supplier, stok masuk/keluar FIFO, stock opname, peringatan stok, laporan nilai/aging/slow-moving/dead stock | ✅ selesai |
+| 3 | Pembelian (PO, penerimaan barang, invoice & pembayaran supplier) | berikutnya |
+| 4–7 | Menu, POS, Refund & Settlement, Laporan keuangan | direncanakan |
 
 ## Struktur
 
@@ -76,6 +77,16 @@ Di view:
 <?php endif; ?>
 ```
 
+## Inventory
+
+- **Semua perubahan stok lewat `Stock_service`** (`application/libraries/Stock_service.php`): `receive()`, `issue()`, `count()`. Jangan update kolom stok langsung, karena modul Pembelian (GR) dan POS nanti juga memakai library ini.
+- **Valuasi FIFO**: setiap stok masuk menjadi batch (`ingredient_batches`), stok keluar mengambil dari batch tertua, dan pemakaian per batch dicatat di `stock_movement_batches`. `ingredients.qty_on_hand` dan `stock_value` dihitung ulang dari batch setiap kali ada pergerakan.
+- **Dokumen multi-baris bersifat atomik**: kalau satu baris gagal (mis. stok kurang), tidak ada yang tersimpan.
+- **Satuan alternatif**: satu bahan punya satu satuan standar (mis. kg) dan satuan lain dengan faktor konversi (gram = 0.001, karung = 25). Input boleh memakai satuan apa pun, penyimpanan selalu dalam satuan standar.
+- **Stock opname**: lembar hitung bisa disimpan sebagai draft. Saat diposting, selisih terhadap stok sistem *pada saat posting* dibukukan sebagai penyesuaian.
+- Harga beli & nilai stok hanya terlihat oleh role dengan permission `inventory.view_cost` (Staff Dapur tidak).
+- Bahan/supplier/kategori yang sudah punya riwayat tidak bisa dihapus, hanya dinonaktifkan, supaya laporan tetap utuh.
+
 ## Keamanan
 
 - Password di-hash dengan `password_hash()` (bcrypt), dengan aturan minimal 8 karakter berisi huruf dan angka.
@@ -96,3 +107,5 @@ Beberapa hal di PRD diubah saat implementasi:
 | Contoh kode: non-admin auto-approve refund < 500K | Limit refund & batas menit diatur di Pengaturan dan dicek per permission (fase Refund) | Contoh di PRD membuat semua user non-admin bisa auto-approve |
 | `assets/` & `migrations/` di dalam `application/` | `public/assets/`, `application/migrations/` | Struktur CodeIgniter 3: aset harus di folder publik |
 | Role default tanpa Owner | Role *Owner* ditambahkan | Approval PO > 20 juta dan refund > 2 juta butuh Owner |
+| Valuasi FIFO/LIFO/Average | FIFO | PRD 2.1.3 memilih FIFO untuk bahan mudah rusak |
+| Notifikasi email stok minimum | Peringatan di dashboard & halaman Peringatan Stok | Email belum dikonfigurasi di server; bisa ditambahkan nanti |

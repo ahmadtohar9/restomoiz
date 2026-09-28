@@ -3,6 +3,17 @@ $flash = $this->session->flashdata('flash');
 $nav = array(
 	array('label' => 'Dashboard', 'icon' => 'speedometer2', 'url' => 'dashboard', 'perm' => NULL),
 );
+$inventory_nav = array(
+	array('label' => 'Bahan Baku', 'icon' => 'box-seam', 'url' => 'inventory/ingredients', 'perm' => NULL),
+	array('label' => 'Stok Masuk', 'icon' => 'box-arrow-in-down', 'url' => 'inventory/stock/in', 'perm' => 'inventory.adjust'),
+	array('label' => 'Stok Keluar', 'icon' => 'box-arrow-up', 'url' => 'inventory/stock/out', 'perm' => 'inventory.adjust'),
+	array('label' => 'Stock Opname', 'icon' => 'clipboard-check', 'url' => 'inventory/opname', 'perm' => NULL),
+	array('label' => 'Riwayat Stok', 'icon' => 'clock-history', 'url' => 'inventory/stock/movements', 'perm' => NULL),
+	array('label' => 'Peringatan Stok', 'icon' => 'exclamation-triangle', 'url' => 'inventory/stock/alerts', 'perm' => NULL),
+	array('label' => 'Supplier', 'icon' => 'truck', 'url' => 'inventory/suppliers', 'perm' => NULL),
+	array('label' => 'Kategori Bahan', 'icon' => 'diagram-3', 'url' => 'inventory/categories', 'perm' => NULL),
+	array('label' => 'Laporan Inventory', 'icon' => 'bar-chart-line', 'url' => 'inventory/reports', 'perm' => 'report.inventory'),
+);
 $admin_nav = array(
 	array('label' => 'User', 'icon' => 'people', 'url' => 'admin/users', 'perm' => 'admin.users'),
 	array('label' => 'Role', 'icon' => 'person-badge', 'url' => 'admin/roles', 'perm' => 'admin.roles'),
@@ -41,8 +52,15 @@ $active = function ($url) use ($uri) {
 				<a class="nav-link <?= $active($item['url']) ?>" href="<?= site_url($item['url']) ?>"><i class="bi bi-<?= $item['icon'] ?>"></i> <?= e($item['label']) ?></a>
 			<?php endforeach; ?>
 
+			<?php if (can('inventory.view')): ?>
+				<div class="nav-section">Inventory</div>
+				<?php foreach ($inventory_nav as $item): if ($item['perm'] && ! can($item['perm'])) continue; ?>
+					<a class="nav-link <?= $active($item['url']) ?>" href="<?= site_url($item['url']) ?>"><i class="bi bi-<?= $item['icon'] ?>"></i> <?= e($item['label']) ?></a>
+				<?php endforeach; ?>
+			<?php endif; ?>
+
 			<div class="nav-section">Operasional</div>
-			<?php foreach (array('Inventory' => 'box-seam', 'Pembelian' => 'cart3', 'Menu' => 'journal-richtext', 'POS & Penjualan' => 'cash-coin', 'Laporan' => 'bar-chart') as $label => $icon): ?>
+			<?php foreach (array('Pembelian' => 'cart3', 'Menu' => 'journal-richtext', 'POS & Penjualan' => 'cash-coin', 'Laporan Keuangan' => 'bar-chart') as $label => $icon): ?>
 				<span class="nav-link disabled" title="Dikerjakan di fase berikutnya"><i class="bi bi-<?= $icon ?>"></i> <?= e($label) ?> <small class="badge text-bg-secondary ms-auto">segera</small></span>
 			<?php endforeach; ?>
 

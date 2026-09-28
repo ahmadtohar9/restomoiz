@@ -33,6 +33,7 @@ $config['rbac_permissions'] = array(
 	'inventory.delete'       => array('inventory', 'Hapus bahan baku'),
 	'inventory.adjust'       => array('inventory', 'Penyesuaian stok (stock adjustment)'),
 	'inventory.supplier'     => array('inventory', 'Kelola supplier'),
+	'inventory.view_cost'    => array('inventory', 'Lihat harga beli & nilai stok'),
 
 	// Pembelian
 	'purchase.view'          => array('purchase', 'Lihat PO, GR, invoice'),
@@ -92,7 +93,7 @@ $config['rbac_default_roles'] = array(
 		'description' => 'Pemilik / direktur - semua laporan & approval tertinggi',
 		'is_super'    => FALSE,
 		'permissions' => array(
-			'inventory.view', 'purchase.view', 'purchase.approve', 'purchase.approve_owner',
+			'inventory.view', 'inventory.view_cost', 'purchase.view', 'purchase.approve', 'purchase.approve_owner',
 			'menu.view', 'menu.view_recipe', 'menu.view_cogs',
 			'sales.refund_approve', 'sales.refund_owner', 'sales.shift_approve',
 			'report.operational', 'report.inventory', 'report.financial',
@@ -104,7 +105,7 @@ $config['rbac_default_roles'] = array(
 		'description' => 'Operasional harian, menu, promo, approval',
 		'is_super'    => FALSE,
 		'permissions' => array(
-			'inventory.view', 'purchase.view', 'purchase.approve',
+			'inventory.view', 'inventory.view_cost', 'purchase.view', 'purchase.approve',
 			'menu.view', 'menu.create', 'menu.edit', 'menu.edit_price', 'menu.promo',
 			'menu.view_recipe', 'menu.view_cogs',
 			'sales.process', 'sales.order', 'sales.edit_order', 'sales.refund',
@@ -118,7 +119,7 @@ $config['rbac_default_roles'] = array(
 		'is_super'    => FALSE,
 		'permissions' => array(
 			'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.adjust',
-			'inventory.supplier', 'purchase.view', 'purchase.create', 'purchase.receive',
+			'inventory.supplier', 'inventory.view_cost', 'purchase.view', 'purchase.create', 'purchase.receive',
 			'menu.view', 'menu.view_recipe', 'report.inventory',
 		),
 	),
@@ -135,7 +136,7 @@ $config['rbac_default_roles'] = array(
 		'description' => 'Keuangan, pembayaran, rekonsiliasi',
 		'is_super'    => FALSE,
 		'permissions' => array(
-			'inventory.view', 'purchase.view', 'purchase.invoice', 'purchase.payment',
+			'inventory.view', 'inventory.view_cost', 'purchase.view', 'purchase.invoice', 'purchase.payment',
 			'menu.view', 'menu.view_cogs', 'payment.reconcile',
 			'report.operational', 'report.inventory', 'report.financial',
 		),

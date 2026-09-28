@@ -9,3 +9,7 @@ $route['login'] = 'auth/login';
 $route['logout'] = 'auth/logout';
 
 $route['admin'] = 'admin/users';
+
+$route['inventory'] = 'inventory/ingredients';
+$route['inventory/reports'] = 'inventory/reports/index/value';
+$route['inventory/reports/(value|aging|slow|dead)'] = 'inventory/reports/index/$1';

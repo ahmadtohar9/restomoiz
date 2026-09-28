@@ -52,6 +52,8 @@ class Cli extends CI_Controller {
 		$this->db->trans_start();
 
 		// 1. Permission: tambah yang baru, perbarui deskripsi/modul.
+		$existing = array_column($this->db->select('name')->get('permissions')->result_array(), 'name');
+		$new_permissions = array_diff(array_keys($permissions), $existing);
 		foreach ($permissions as $name => $meta)
 		{
 			$this->db->query(
@@ -71,8 +73,15 @@ class Cli extends CI_Controller {
 		$created = 0;
 		foreach ($roles as $code => $role)
 		{
-			if ($this->db->where('code', $code)->count_all_results('roles') > 0)
+			$existing_role = $this->db->select('id')->where('code', $code)->get('roles')->row_array();
+			if ($existing_role)
 			{
+				// Permission yang BARU ditambahkan ke katalog ikut diberikan ke role
+				// default yang mencantumkannya. Permission lama tidak disentuh.
+				foreach (array_intersect($role['permissions'], $new_permissions) as $perm)
+				{
+					$this->db->query('INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (?, ?)', array($existing_role['id'], $perm_ids[$perm]));
+				}
 				continue;
 			}
 			$this->db->insert('roles', array(
@@ -106,6 +115,9 @@ class Cli extends CI_Controller {
 			'po_auto_limit'       => array('5000000', 'PO di bawah nilai ini auto-approved'),
 			'po_owner_limit'      => array('20000000', 'PO di atas nilai ini butuh approval Owner'),
 			'cash_variance_limit' => array('10000', 'Selisih kas shift yang masih boleh ditutup tanpa approval'),
+			'expiry_alert_days'   => array('7', 'Peringatan bahan mendekati kedaluwarsa (hari sebelum)'),
+			'slow_moving_days'    => array('30', 'Bahan dianggap slow-moving jika tidak keluar selama (hari)'),
+			'dead_stock_days'     => array('60', 'Bahan dianggap dead stock jika tidak keluar selama (hari)'),
 		);
 		foreach ($settings as $key => $s)
 		{
@@ -120,7 +132,7 @@ class Cli extends CI_Controller {
 		{
 			$this->_fail('Seed gagal, transaksi dibatalkan.');
 		}
-		echo 'Seed OK: ' . count($permissions) . " permission, $created role baru\n";
+		echo 'Seed OK: ' . count($permissions) . ' permission (' . count($new_permissions) . " baru), $created role baru\n";
 	}
 
 	public function create_admin($username = NULL, $password = NULL)

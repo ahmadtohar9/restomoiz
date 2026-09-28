@@ -1,0 +1,5 @@
+# Folder upload: hanya file statis. Script apa pun tidak boleh dieksekusi/diakses.
+Options -Indexes -ExecCGI
+<FilesMatch "\.(php[0-9]?|phtml|phar|pl|py|cgi|sh|htaccess)$">
+	Require all denied
+</FilesMatch>
