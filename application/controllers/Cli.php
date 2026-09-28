@@ -123,6 +123,12 @@ class Cli extends CI_Controller {
 			'menu_auto_oos'       => array('1', 'Menu otomatis "habis" jika stok bahan resep tidak cukup untuk 1 porsi (1 = ya)'),
 			'menu_margin_warning' => array('40', 'Tandai menu dengan margin kotor di bawah (persen)'),
 			'public_menu_enabled' => array('1', 'Aktifkan menu online publik untuk QR pelanggan (1 = ya)'),
+			'resto_address'       => array('', 'Alamat resto (tampil di struk)'),
+			'resto_phone'         => array('', 'Telepon resto (tampil di struk)'),
+			'receipt_footer'      => array('Terima kasih atas kunjungan Anda!', 'Pesan di bawah struk'),
+			'receipt_paper'       => array('80', 'Lebar kertas struk dalam mm (58 atau 80)'),
+			'pos_block_insufficient_stock' => array('1', 'Tolak penjualan jika stok bahan di sistem tidak cukup (0 = tetap jual & catat kekurangan)'),
+			'kitchen_refresh_seconds' => array('10', 'Interval refresh layar dapur (detik)'),
 		);
 		foreach ($settings as $key => $s)
 		{

@@ -12,9 +12,9 @@ class Settings extends MY_Controller {
 		'tax_rate', 'service_charge_rate', 'refund_auto_limit', 'refund_auto_minutes',
 		'refund_owner_limit', 'po_auto_limit', 'po_owner_limit', 'cash_variance_limit',
 		'expiry_alert_days', 'slow_moving_days', 'dead_stock_days', 'invoice_match_tolerance', 'po_variance_flag',
-		'menu_margin_warning',
+		'menu_margin_warning', 'receipt_paper', 'kitchen_refresh_seconds',
 	);
-	protected $boolean = array('tax_enabled', 'menu_auto_oos', 'public_menu_enabled');
+	protected $boolean = array('tax_enabled', 'menu_auto_oos', 'public_menu_enabled', 'pos_block_insufficient_stock');
 
 	public function __construct()
 	{
@@ -55,6 +55,21 @@ class Settings extends MY_Controller {
 				if ($key === 'tax_rate' && $value > 100)
 				{
 					$errors[] = 'Tarif PPN tidak boleh lebih dari 100%.';
+					continue;
+				}
+				if ($key === 'receipt_paper' && ! in_array($value, array('58', '80'), TRUE))
+				{
+					$errors[] = 'Lebar kertas struk harus 58 atau 80.';
+					continue;
+				}
+				if ($key === 'kitchen_refresh_seconds' && ($value < 3 OR $value > 120))
+				{
+					$errors[] = 'Interval refresh dapur 3-120 detik.';
+					continue;
+				}
+				if (mb_strlen($value) > 255)
+				{
+					$errors[] = "{$s['description']}: maksimal 255 karakter.";
 					continue;
 				}
 				if ($value !== (string) $s['value'])

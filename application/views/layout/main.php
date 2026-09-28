@@ -26,8 +26,17 @@ $menu_nav = array(
 	array('label' => 'Kategori Menu', 'icon' => 'diagram-3', 'url' => 'menu/categories', 'perm' => NULL),
 	array('label' => 'Promo', 'icon' => 'percent', 'url' => 'menu/promos', 'perm' => 'menu.view'),
 	array('label' => 'Simulator Promo', 'icon' => 'calculator', 'url' => 'menu/promos/simulator', 'perm' => 'menu.view'),
+	array('label' => 'Tambahan & Topping', 'icon' => 'plus-circle', 'url' => 'menu/modifiers', 'perm' => 'menu.view'),
 	array('label' => 'Barcode & Label', 'icon' => 'upc-scan', 'url' => 'menu/labels', 'perm' => 'menu.view'),
 	array('label' => 'Analisis Margin', 'icon' => 'graph-up-arrow', 'url' => 'menu/analysis', 'perm' => 'menu.view_cogs'),
+);
+$sales_nav = array(
+	array('label' => 'POS Kasir', 'icon' => 'cash-coin', 'url' => 'pos', 'any' => array('sales.process', 'sales.order')),
+	array('label' => 'Dapur', 'icon' => 'fire', 'url' => 'sales/kitchen', 'any' => array('sales.kitchen', 'sales.order', 'sales.process')),
+	array('label' => 'Transaksi', 'icon' => 'receipt', 'url' => 'sales/orders', 'any' => array('sales.process', 'sales.order', 'sales.edit_order', 'report.operational')),
+	array('label' => 'Meja', 'icon' => 'grid-3x3-gap', 'url' => 'sales/tables', 'any' => array('sales.process', 'sales.order', 'sales.edit_order')),
+	array('label' => 'Shift Kasir', 'icon' => 'clock-history', 'url' => 'sales/shifts', 'any' => array('sales.shift', 'sales.shift_approve', 'report.operational', 'report.own_shift')),
+	array('label' => 'Pelanggan', 'icon' => 'person-vcard', 'url' => 'sales/customers', 'any' => array('sales.process', 'sales.order', 'sales.edit_order')),
 );
 $admin_nav = array(
 	array('label' => 'User', 'icon' => 'people', 'url' => 'admin/users', 'perm' => 'admin.users'),
@@ -91,8 +100,16 @@ $active = function ($url) use ($uri) {
 				<?php endif; ?>
 			<?php endif; ?>
 
+			<?php $visible_sales = array_filter($sales_nav, function ($i) { return can_any($i['any']); }); ?>
+			<?php if ($visible_sales): ?>
+				<div class="nav-section">Penjualan</div>
+				<?php foreach ($visible_sales as $item): ?>
+					<a class="nav-link <?= $active($item['url']) ?>" href="<?= site_url($item['url']) ?>"><i class="bi bi-<?= $item['icon'] ?>"></i> <?= e($item['label']) ?></a>
+				<?php endforeach; ?>
+			<?php endif; ?>
+
 			<div class="nav-section">Operasional</div>
-			<?php foreach (array('POS & Penjualan' => 'cash-coin', 'Laporan Keuangan' => 'bar-chart') as $label => $icon): ?>
+			<?php foreach (array('Refund & Settlement' => 'arrow-counterclockwise', 'Laporan Keuangan' => 'bar-chart') as $label => $icon): ?>
 				<span class="nav-link disabled" title="Dikerjakan di fase berikutnya"><i class="bi bi-<?= $icon ?>"></i> <?= e($label) ?> <small class="badge text-bg-secondary ms-auto">segera</small></span>
 			<?php endforeach; ?>
 

@@ -32,6 +32,23 @@ class Dashboard extends MY_Controller {
 			$data['purchase'] = $this->Purchase_model->pending_counts();
 		}
 
+		if (can_any(array('sales.process', 'report.operational', 'report.financial')))
+		{
+			$today = date('Y-m-d');
+			$data['sales_today'] = $this->db->query(
+				"SELECT COUNT(*) AS tx, COALESCE(SUM(total), 0) AS revenue, COALESCE(SUM(cogs_total), 0) AS cogs
+				 FROM orders WHERE status = 'paid' AND paid_at >= ? AND paid_at <= ?",
+				array($today . ' 00:00:00', $today . ' 23:59:59')
+			)->row_array();
+			$data['sales_today']['open'] = $this->db->where('status', 'open')->count_all_results('orders');
+			$data['sales_today']['pending_shifts'] = can('sales.shift_approve') ? $this->db->where('status', 'pending_approval')->count_all_results('shifts') : 0;
+			$data['top_today'] = $this->db->query(
+				"SELECT oi.name, SUM(oi.qty) AS qty FROM order_items oi JOIN orders o ON o.id = oi.order_id
+				 WHERE o.status = 'paid' AND o.paid_at >= ? AND oi.kitchen_status != 'void' GROUP BY oi.name ORDER BY qty DESC LIMIT 5",
+				array($today . ' 00:00:00')
+			)->result_array();
+		}
+
 		$this->render('dashboard/index', $data);
 	}
 }

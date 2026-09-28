@@ -36,6 +36,7 @@ class Stock_service {
 		'adjustment_out'   => array('Penyesuaian (-)', 'ADJ'),
 		'opname'           => array('Stock opname', 'ADJ'),
 		'sales'            => array('Terpakai penjualan', 'OUT'),
+		'sales_return'     => array('Pembatalan penjualan', 'IN'),
 	);
 
 	/** Alasan yang memperbarui harga beli terakhir bahan. */
@@ -155,10 +156,12 @@ class Stock_service {
 	 * @param float $qty  jumlah dalam satuan standar (> 0)
 	 * @param array $o    reason (wajib), movement_no, batch_id (ambil dari batch ini dulu,
 	 *                    mis. buang yang kedaluwarsa), supplier_id, ref_type, ref_id, notes,
-	 *                    input_qty, input_unit
-	 * @return int id movement
+	 *                    input_qty, input_unit,
+	 *                    allow_partial (TRUE = kalau stok kurang, keluarkan yang ada saja;
+	 *                    kekurangan dikembalikan lewat $o['shortage'] by reference)
+	 * @return int|NULL id movement (NULL kalau allow_partial dan stok 0)
 	 */
-	public function issue($ingredient_id, $qty, array $o)
+	public function issue($ingredient_id, $qty, array &$o)
 	{
 		$qty = round((float) $qty, 3);
 		$reason = $o['reason'];
@@ -169,10 +172,21 @@ class Stock_service {
 		}
 
 		$ing = $this->_lock($ingredient_id);
+		$o['shortage'] = 0.0;
 		if ($qty > (float) $ing['qty_on_hand'] + 0.0005)
 		{
-			throw new Stock_exception(sprintf('Stok %s tidak cukup: tersedia %s %s, diminta %s %s.',
-				$ing['name'], qty($ing['qty_on_hand']), $ing['unit'], qty($qty), $ing['unit']));
+			if (empty($o['allow_partial']))
+			{
+				throw new Stock_exception(sprintf('Stok %s tidak cukup: tersedia %s %s, diminta %s %s.',
+					$ing['name'], qty($ing['qty_on_hand']), $ing['unit'], qty($qty), $ing['unit']));
+			}
+			$o['shortage'] = round($qty - (float) $ing['qty_on_hand'], 3);
+			$qty = round((float) $ing['qty_on_hand'], 3);
+			$o['notes'] = trim((isset($o['notes']) ? $o['notes'] . ' ' : '') . '(stok kurang ' . qty($o['shortage']) . ' ' . $ing['unit'] . ')');
+			if ($qty <= 0)
+			{
+				return NULL;
+			}
 		}
 
 		$batches = $this->db->query(
@@ -228,6 +242,70 @@ class Stock_service {
 		}
 		$this->_refresh_totals($ing['id'], $update);
 
+		return $movement_id;
+	}
+
+	/**
+	 * Batalkan movement keluar: kembalikan qty ke batch asal dengan harga
+	 * aslinya (bukan batch baru), sehingga nilai FIFO kembali persis.
+	 * Dipakai untuk item pesanan yang dibatalkan sebelum dimasak & refund.
+	 *
+	 * @param float|NULL $qty  NULL = seluruhnya; atau sebagian (dikembalikan ke batch terbaru dulu)
+	 * @return int|NULL id movement pengembalian
+	 */
+	public function reverse($movement_id, array $o, $qty = NULL)
+	{
+		$m = $this->db->query('SELECT * FROM stock_movements WHERE id = ? FOR UPDATE', array((int) $movement_id))->row_array();
+		if ( ! $m OR (float) $m['qty'] >= 0)
+		{
+			throw new Stock_exception('Movement yang dibatalkan harus berupa stok keluar.');
+		}
+		$reason = isset($o['reason']) ? $o['reason'] : 'sales_return';
+		$this->_check_reason($reason, array('IN', 'ADJ'));
+		$ing = $this->_lock($m['ingredient_id']);
+
+		// Qty yang sudah pernah dikembalikan dari movement ini.
+		$returned = (float) $this->db->query(
+			"SELECT COALESCE(SUM(qty), 0) AS q FROM stock_movements WHERE ref_type = 'reversal' AND ref_id = ?",
+			array((string) $m['id'])
+		)->row()->q;
+		$available = round(-(float) $m['qty'] - $returned, 3);
+		$qty = $qty === NULL ? $available : round((float) $qty, 3);
+		if ($qty <= 0)
+		{
+			return NULL;
+		}
+		if ($qty > $available + 0.0005)
+		{
+			throw new Stock_exception("Pengembalian {$ing['name']} melebihi jumlah yang dikeluarkan.");
+		}
+
+		$parts = $this->db->query(
+			'SELECT mb.batch_id, mb.qty, mb.unit_cost FROM stock_movement_batches mb
+			 WHERE mb.movement_id = ? ORDER BY mb.batch_id DESC FOR UPDATE',
+			array($m['id'])
+		)->result_array();
+
+		$left = $qty;
+		$value = 0.0;
+		foreach ($parts as $p)
+		{
+			if ($left <= 0)
+			{
+				break;
+			}
+			$put = min($left, (float) $p['qty']);
+			$this->db->query('UPDATE ingredient_batches SET qty_remaining = qty_remaining + ? WHERE id = ?', array($put, $p['batch_id']));
+			$value += $put * (float) $p['unit_cost'];
+			$left = round($left - $put, 3);
+		}
+
+		$now = date('Y-m-d H:i:s');
+		$o['ref_type'] = 'reversal';
+		$o['ref_id'] = (string) $m['id'];
+		$movement_id = $this->_movement($ing, self::$reasons[$reason][1], $reason, $qty, round($value / $qty, 4), round($value, 2),
+			round((float) $ing['qty_on_hand'] + $qty, 3), $o, $now);
+		$this->_refresh_totals($ing['id']);
 		return $movement_id;
 	}
 

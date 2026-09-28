@@ -13,8 +13,9 @@ Aplikasi ini **berdiri sendiri** dan tidak berbagi kode, database, session, maup
 | 2 | Inventory: bahan baku, kategori bertingkat, supplier, stok masuk/keluar FIFO, stock opname, peringatan stok, laporan nilai/aging/slow-moving/dead stock | ✅ selesai |
 | 3 | Pembelian: PO dengan approval berjenjang, penerimaan barang (GR), invoice supplier dengan 3-way matching, pembayaran & verifikasi, laporan belanja/tren harga/kinerja supplier/aging hutang | ✅ selesai |
 | 4 | Menu: kategori, varian, resep & COGS otomatis, harga normal/member/grosir dengan jadwal & riwayat, promo + simulator, barcode/label, menu online publik, analisis margin | ✅ selesai |
-| 5 | POS & order (dine-in, takeaway, delivery), shift kasir | berikutnya |
-| 6–7 | Refund & Settlement, Laporan keuangan | direncanakan |
+| 5 | POS (scan barcode, varian, tambahan/topping, promo & kode promo, PPN/service), order dine-in/takeaway/delivery, meja, layar dapur, struk & tiket dapur, pembayaran tunai/debit/kredit/e-wallet, shift kasir dengan approval selisih kas, pelanggan/member | ✅ selesai |
+| 6 | Refund & Settlement | berikutnya |
+| 7 | Laporan keuangan & dashboard analitik | direncanakan |
 
 ## Struktur
 
@@ -110,6 +111,15 @@ Alur: **PO** (draft → submit → approval) → **Penerimaan barang** (stok mas
 - **Barcode**: kode internal EAN-13 berprefix 20 (rentang in-store GS1), digambar sebagai CODE128 SVG oleh `application/libraries/Barcode.php` (tabel pola sudah dicocokkan dengan JsBarcode). QR di label memakai `qrcode-generator` (MIT) yang disimpan di `public/assets/vendor`.
 - **Menu online** publik di `/menu-online` (bisa dimatikan lewat `public_menu_enabled`). Kategori bertanda *internal* tidak ditampilkan.
 
+## Penjualan & POS
+
+- **Harga selalu dihitung server** (`Pos_service`): browser hanya mengirim varian, qty, tambahan, dan catatan. Harga member/grosir, promo (`Promo_engine`), service charge, dan PPN dihitung ulang di server. Urutan: subtotal − promo → service charge → PPN atas (dasar + service).
+- **Alur pesanan**: *Kirim ke Dapur* menyimpan pesanan (status `open`, bisa dibayar nanti, mis. dine-in) atau *Bayar* langsung. Tambahan item ke pesanan terbuka tercetak sebagai tiket dapur "TAMBAHAN". Satu meja hanya punya satu pesanan terbuka.
+- **Stok**: bahan resep + bahan tambahan keluar (FIFO, alasan `sales`) saat item dikirim ke dapur; COGS asli tercatat per item. Item yang dibatalkan sebelum dimasak mengembalikan stok ke batch asal dengan harga asli (`Stock_service::reverse()`); item yang sudah dimasak dicatat terbuang dan pembatalannya butuh `sales.edit_order`. Jika `pos_block_insufficient_stock` = 0, penjualan tetap jalan saat stok sistem kurang (ditandai, COGS kekurangan dihitung dengan harga beli terakhir).
+- **Pembayaran** butuh shift kasir yang terbuka. Kartu: hanya jenis, 4 digit terakhir, dan kode approval EDC. Kuota promo dicek ulang dengan kunci baris saat bayar.
+- **Shift**: kas seharusnya = modal + penjualan tunai − refund tunai. Selisih di atas `cash_variance_limit` wajib diberi catatan dan menunggu approval `sales.shift_approve` oleh orang lain.
+- **Layar dapur** refresh otomatis (`kitchen_refresh_seconds`) dengan bunyi notifikasi: dapur menandai dimasak/siap, pelayan/kasir menandai diantar.
+
 ## Keamanan
 
 - Password di-hash dengan `password_hash()` (bcrypt), dengan aturan minimal 8 karakter berisi huruf dan angka.
@@ -137,3 +147,6 @@ Beberapa hal di PRD diubah saat implementasi:
 | Verifikasi pembayaran oleh Accounting | Oleh user `purchase.payment` yang berbeda dari penginput | Kontrol internal: input dan verifikasi dipisah |
 | Recurrence promo bulanan | Hari dalam minggu + jam + rentang tanggal | Mencakup harian/mingguan/happy hour; pola bulanan bisa ditambah bila dibutuhkan |
 | Dynamic pricing (opsional di PRD) | Belum | Ditandai *future* di PRD |
+| Kartu kredit: simpan nomor tersamar, expiry | Hanya jenis kartu, 4 digit terakhir, kode approval EDC | PCI-DSS: data kartu lain tidak perlu & berisiko |
+| Email struk | Cetak struk thermal (58/80 mm) | Email belum dikonfigurasi di server |
+| Bill PPN 10% (contoh struk PRD) | Tarif dari Pengaturan (default 11%) | Mengikuti regulasi |

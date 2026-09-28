@@ -21,6 +21,26 @@
 </div>
 <?php endif; ?>
 
+<?php if (isset($sales_today)): $st = $sales_today; ?>
+<div class="card mb-4">
+	<div class="card-header d-flex align-items-center"><span><i class="bi bi-cash-coin"></i> Penjualan hari ini</span>
+		<a class="ms-auto small" href="<?= site_url('sales/orders') ?>">Transaksi</a></div>
+	<div class="card-body">
+		<div class="row g-3">
+			<div class="col-6 col-md-3"><div class="stat-label">Pendapatan</div><div class="stat-value fs-4"><?= rupiah($st['revenue']) ?></div></div>
+			<div class="col-6 col-md-3"><div class="stat-label">Transaksi</div><div class="stat-value fs-4"><?= (int) $st['tx'] ?></div></div>
+			<div class="col-6 col-md-3"><div class="stat-label">Rata-rata bill</div><div class="stat-value fs-4"><?= rupiah($st['tx'] ? $st['revenue'] / $st['tx'] : 0) ?></div></div>
+			<?php if (can('menu.view_cogs')): ?><div class="col-6 col-md-3"><div class="stat-label">Laba kotor (sblm pajak)</div><div class="stat-value fs-4"><?= rupiah($st['revenue'] - $st['cogs']) ?></div></div><?php endif; ?>
+		</div>
+		<div class="d-flex flex-wrap gap-3 mt-3 small">
+			<?php if ($st['open']): ?><a href="<?= site_url('sales/orders?status=open') ?>"><span class="badge text-bg-warning"><?= (int) $st['open'] ?></span> pesanan belum dibayar</a><?php endif; ?>
+			<?php if ($st['pending_shifts']): ?><a href="<?= site_url('sales/shifts') ?>"><span class="badge text-bg-danger"><?= (int) $st['pending_shifts'] ?></span> shift menunggu approval selisih kas</a><?php endif; ?>
+			<?php if ($top_today): ?><span class="text-muted">Terlaris: <?= e(implode(', ', array_map(function ($t) { return $t['name'] . ' (' . (int) $t['qty'] . ')'; }, $top_today))) ?></span><?php endif; ?>
+		</div>
+	</div>
+</div>
+<?php endif; ?>
+
 <?php if (isset($stock_alerts)): ?>
 <div class="card mb-4">
 	<div class="card-header d-flex align-items-center">
@@ -103,7 +123,7 @@
 			array('Fase 2', 'Inventory: bahan baku, supplier, stok FIFO, opname, peringatan, laporan', TRUE),
 			array('Fase 3', 'Pembelian: PO dengan approval, penerimaan barang, invoice (3-way match), pembayaran supplier', TRUE),
 			array('Fase 4', 'Menu: varian, resep & COGS, harga terjadwal, promo, barcode & menu online', TRUE),
-			array('Fase 5', 'POS & order: dine-in, takeaway, delivery, shift', FALSE),
+			array('Fase 5', 'POS & order: dine-in, takeaway, delivery, dapur, shift kasir', TRUE),
 			array('Fase 6', 'Refund & settlement', FALSE),
 			array('Fase 7', 'Laporan: P&L, pendapatan, dashboard analitik', FALSE),
 		) as $f): ?>
