@@ -53,6 +53,42 @@ class Dashboard extends MY_Controller {
 				 WHERE o.status = 'paid' AND o.paid_at >= ? AND oi.kitchen_status != 'void' GROUP BY oi.name ORDER BY qty DESC LIMIT 5",
 				array($today . ' 00:00:00')
 			)->result_array();
+
+			// Pembanding: kemarin sampai jam yang sama dengan sekarang (adil untuk hari yang belum selesai).
+			$yesterday = date('Y-m-d', strtotime('-1 day'));
+			$data['sales_yesterday'] = $this->db->query(
+				"SELECT COUNT(*) AS tx, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE status = 'paid' AND paid_at >= ? AND paid_at <= ?",
+				array($yesterday . ' 00:00:00', $yesterday . ' ' . date('H:i:s'))
+			)->row_array();
+
+			// Tren pendapatan 14 hari (hari tanpa transaksi = 0).
+			$from = date('Y-m-d', strtotime('-13 days'));
+			$rows = array_column($this->db->query(
+				"SELECT DATE(paid_at) AS d, SUM(total) AS v FROM orders WHERE status = 'paid' AND paid_at >= ? GROUP BY DATE(paid_at)",
+				array($from . ' 00:00:00')
+			)->result_array(), 'v', 'd');
+			$data['trend'] = array();
+			for ($i = 13; $i >= 0; $i--)
+			{
+				$d = date('Y-m-d', strtotime("-$i days"));
+				$data['trend'][] = array(date('j/n', strtotime($d)), isset($rows[$d]) ? (float) $rows[$d] : 0.0);
+			}
+
+			$data['pay_today'] = $this->db->query(
+				"SELECT COALESCE(payment_method, '') AS k, COUNT(*) AS n, SUM(total) AS v FROM orders
+				 WHERE status = 'paid' AND paid_at >= ? GROUP BY k ORDER BY v DESC",
+				array($today . ' 00:00:00')
+			)->result_array();
+			$data['type_today'] = $this->db->query(
+				"SELECT order_type AS k, COUNT(*) AS n, SUM(total) AS v FROM orders
+				 WHERE status = 'paid' AND paid_at >= ? GROUP BY order_type ORDER BY v DESC",
+				array($today . ' 00:00:00')
+			)->result_array();
+			$data['recent_orders'] = $this->db->query(
+				"SELECT o.id, o.order_number, o.order_type, o.customer_name, o.total, o.payment_method, o.paid_at, t.name AS table_name
+				 FROM orders o LEFT JOIN dining_tables t ON t.id = o.table_id
+				 WHERE o.status = 'paid' ORDER BY o.paid_at DESC LIMIT 6"
+			)->result_array();
 		}
 
 		$this->render('dashboard/index', $data);

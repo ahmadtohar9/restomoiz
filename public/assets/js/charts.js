@@ -48,7 +48,7 @@ window.Charts = (function () {
 	}
 
 	function line(host, o) {
-		var W = 720, H = 240, L = 64, R = 12, T = 12, B = 28;
+		var W = 720, H = o.height || 240, L = 64, R = 12, T = 12, B = 28;
 		var f = o.format || 'rp', vals = o.values, n = vals.length;
 		host.classList.add('viz'); host.textContent = '';
 		if (!n) { host.textContent = 'Tidak ada data.'; return; }
