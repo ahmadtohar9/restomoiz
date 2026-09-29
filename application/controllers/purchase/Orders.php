@@ -339,7 +339,23 @@ class Orders extends MY_Controller {
 			$lines[] = array('ingredient_id' => '', 'qty' => '', 'unit' => '', 'cost' => '', 'notes' => '');
 		}
 
+		// Data bantu form ringkas: termin & lead time per supplier, saran reorder, tarif PPN.
+		$supplier_meta = array();
+		foreach ($this->db->select('id, payment_terms, lead_time_days')->where_in('id', array_keys($suppliers) ?: array(0))->get('suppliers')->result_array() as $s)
+		{
+			$supplier_meta[(int) $s['id']] = array('terms' => $s['payment_terms'], 'lead' => (int) $s['lead_time_days']);
+		}
+		$reorder = array();
+		foreach ($this->_reorder_lines($ingredients, 0) as $l)
+		{
+			$reorder[] = array('id' => (int) $l['ingredient_id'], 'qty' => (float) $l['qty'], 'unit' => $l['unit'], 'cost' => $l['cost'] === '' ? 0 : (float) $l['cost'],
+				'supplier' => (int) $ingredients[$l['ingredient_id']]['default_supplier_id']);
+		}
+
 		$this->render('purchase/orders/form', array(
+			'supplier_meta' => $supplier_meta,
+			'reorder'       => $reorder,
+			'tax_rate'      => setting('tax_enabled', '1') === '1' ? (float) setting('tax_rate', 11) : 0.0,
 			'title'       => $is_edit ? 'Edit PO ' . $po['po_number'] : 'Buat Purchase Order',
 			'po'          => $po,
 			'header'      => $header,

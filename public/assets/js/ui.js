@@ -337,7 +337,7 @@ window.UI = (function () {
 	/* ---------------- Form halaman panjang ---------------- */
 	document.addEventListener('DOMContentLoaded', function () {
 		document.querySelectorAll('.content form').forEach(function (form) {
-			if ((form.getAttribute('method') || '').toLowerCase() !== 'post' || form.closest('template, .modal, table')) return;
+			if ((form.getAttribute('method') || '').toLowerCase() !== 'post' || form.closest('template, .modal, table') || form.hasAttribute('data-layout-fixed')) return;
 			// Bagian bernomor bila form terdiri dari >= 2 kartu ber-header.
 			if (form.querySelectorAll('.card > .card-header').length >= 2) form.classList.add('is-sectioned');
 			// Baris tombol simpan menempel di bawah layar bila form lebih tinggi dari layar.

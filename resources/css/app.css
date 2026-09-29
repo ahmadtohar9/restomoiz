@@ -247,6 +247,51 @@ form.is-sectioned .card > .card-header::before {
 }
 .card-footer.is-sticky-actions { @apply tw-rounded-none tw-rounded-b-[inherit] tw-border-x-0 tw-border-b-0; }
 
+/* Form PO ringkas */
+.btn-icon { @apply tw-inline-grid tw-h-8 tw-w-8 tw-place-items-center tw-rounded-lg tw-border-0 tw-p-0 tw-text-slate-400; }
+.btn-icon:hover { @apply tw-bg-slate-100 tw-text-slate-700; }
+.btn-icon.text-danger:hover { @apply tw-bg-rose-50; }
+.btn-icon.is-on { @apply tw-text-indigo-600; }
+.po-layout { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); grid-template-areas: "detail" "items" "summary"; }
+.po-detail { grid-area: detail; } .po-items { grid-area: items; } .po-summary { grid-area: summary; }
+@media (min-width: 1200px) {
+	.po-layout { grid-template-columns: minmax(0, 1fr) 320px; grid-template-rows: auto 1fr; grid-template-areas: "items detail" "items summary"; align-items: start; }
+	.po-summary { position: sticky; top: 80px; }
+}
+.po-form .card-header > .bi:first-child, .po-form .card-header > span > .bi:first-child { @apply tw-text-indigo-500; }
+.po-more > summary { @apply tw-cursor-pointer tw-text-sm tw-font-medium tw-text-indigo-600; }
+.po-grand-box { @apply tw-flex tw-items-baseline tw-justify-between tw-rounded-xl tw-bg-slate-900 tw-px-4 tw-py-3 tw-text-white; }
+.po-grand-box span { @apply tw-text-sm tw-text-slate-300; }
+.po-grand-box strong { @apply tw-text-2xl tw-font-semibold tw-tracking-tight; font-variant-numeric: tabular-nums; }
+.po-approval { @apply tw-mt-2 tw-text-center tw-text-xs tw-font-medium tw-text-slate-500; }
+.po-approval:not(:empty)::before { content: "\F4D1"; font-family: "bootstrap-icons"; @apply tw-mr-1 tw-text-amber-500; }
+.po-lines { counter-reset: poline; }
+.po-lines tbody tr.doc-line { counter-increment: poline; }
+.po-lines td.c-no::before { content: counter(poline); @apply tw-text-xs tw-font-semibold tw-text-slate-400; }
+.po-lines .c-no { @apply tw-w-8 tw-pr-0 tw-text-center; }
+.po-lines .c-item { min-width: 200px; }
+.po-lines .c-qty { width: 190px; min-width: 170px; }
+.po-lines .c-qty .input-group { flex-wrap: nowrap; }
+.po-lines .c-qty .line-qty { min-width: 56px; }
+.po-lines .c-qty .line-unit { max-width: 84px; flex: 0 0 84px; padding-right: 1.6rem; }
+.po-lines .c-cost { width: 130px; min-width: 115px; }
+.po-lines .c-total { width: 115px; @apply tw-font-semibold tw-text-slate-800; font-variant-numeric: tabular-nums; }
+.po-lines .c-act { width: 76px; @apply tw-whitespace-nowrap; }
+.po-lines td { @apply tw-align-top; }
+.po-lines td.c-total, .po-lines td.c-no { @apply tw-pt-4; }
+.po-lines .line-info { @apply tw-mt-1 tw-text-xs; }
+@media (max-width: 767.98px) {
+	.po-lines thead { display: none; }
+	.po-lines tbody tr.doc-line { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem .75rem; padding: .85rem 1rem; border-bottom: 1px solid #e2e8f0; }
+	.po-lines tbody tr.doc-line > td { display: block; width: auto !important; min-width: 0 !important; padding: 0 !important; border: 0 !important; }
+	.po-lines td.c-no { display: none !important; }
+	.po-lines td.c-item { grid-column: 1 / -1; }
+	.po-lines td.c-total { text-align: left !important; align-self: center; }
+	.po-lines td.c-total:not(:empty)::before { content: "Subtotal "; @apply tw-text-xs tw-font-normal tw-text-slate-500; }
+	.po-lines td.c-act { align-self: center; }
+	.po-items .table-responsive { overflow: visible; }
+}
+
 /* Kartu meja */
 .table-card { @apply tw-overflow-hidden tw-transition-shadow; border-top: 3px solid transparent !important; }
 .table-card:hover { box-shadow: 0 8px 24px rgba(15, 23, 42, .08); }
