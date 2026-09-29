@@ -206,6 +206,33 @@
 	.pos-actions .btn { min-height: 3rem; }
 	.mc-body { padding: .5rem .6rem .6rem; }
 }
+/* Tablet dalam orientasi portrait (iPad, Android tablet berdiri):
+   kolom katalog jadi sempit kalau keranjang tetap selebar versi landscape,
+   jadi keranjang diperkecil dan grid menu dirapatkan supaya proporsional. */
+@media (min-width: 600px) and (max-width: 1024.98px) and (orientation: portrait) {
+	:root { --pos-cart-w: 280px; }
+	.pos-top { padding: .5rem .65rem; gap: .5rem; min-height: 52px; }
+	.pos-top-mid { max-width: 46%; }
+	.pos-open { max-width: 260px; }
+	.pos-open select { min-height: 2.15rem; font-size: .85rem; }
+	.pos-brand small { display: none; }
+	.pos-left { padding: .65rem .65rem 0; gap: .55rem; }
+	.pos-search input { padding: .6rem 3.2rem .6rem 2.5rem; min-height: 2.5rem; font-size: .92rem; }
+	.pos-search > .bi { font-size: 1rem; }
+	.pos-cats { gap: .35rem; }
+	.pos-chip { padding: .4rem .75rem; font-size: .8rem; }
+	.pos-grid { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: .55rem; }
+	.mc-name { font-size: .85rem; min-height: 2.1em; }
+	.mc-price { font-size: .85rem; }
+	.mc-body { padding: .45rem .55rem .55rem; }
+	.pos-cart-head, .pos-order-opts, .pos-cart-items, .pos-cart-foot { padding-left: .7rem; padding-right: .7rem; }
+	.pos-cart-head strong { font-size: .95rem; }
+	.pos-seg label { font-size: .74rem; padding: .4rem .2rem; }
+	.pos-delivery { grid-template-columns: 1fr; }
+	.pos-totals { font-size: .82rem; }
+	.pos-grand td { font-size: 1.15rem; }
+	.pos-actions .btn { min-height: 2.9rem; font-size: .85rem; }
+}
 /* HP: katalog di atas, keranjang di bawah + bar melayang */
 @media (max-width: 767.98px) {
 	.pos-body { height: auto; overflow: auto; }
