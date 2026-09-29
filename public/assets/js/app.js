@@ -50,14 +50,14 @@
 	});
 
 	// Label satuan standar di baris satuan alternatif mengikuti input satuan.
-	var unitInput = document.getElementById('unit');
-	if (unitInput) {
-		unitInput.addEventListener('input', function () {
-			document.querySelectorAll('.unit-std-label').forEach(function (l) {
-				l.textContent = unitInput.value || 'satuan standar';
-			});
+	// (delegasi: tetap jalan saat form dibuka di modal)
+	document.addEventListener('input', function (e) {
+		if (e.target.id !== 'unit') return;
+		var scope = e.target.closest('form') || document;
+		scope.querySelectorAll('.unit-std-label').forEach(function (l) {
+			l.textContent = e.target.value || 'satuan standar';
 		});
-	}
+	});
 
 	// ---- Form dokumen stok multi-baris ----
 	var doc = document.getElementById('stock-doc');

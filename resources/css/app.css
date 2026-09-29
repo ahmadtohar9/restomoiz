@@ -230,6 +230,58 @@ table.dataTable td.dt-empty { @apply tw-py-8 tw-text-center tw-text-slate-400; }
 }
 @media print { .dt-container > .row:not(.dt-layout-table) { display: none !important; } }
 
+.ui-actions { @apply tw-mt-4 tw-flex tw-justify-end tw-gap-2; }
+.form-section-note { @apply tw-flex tw-items-start tw-gap-2 tw-rounded-lg tw-bg-slate-50 tw-px-3 tw-py-2 tw-text-xs tw-text-slate-500; }
+.form-section-note .bi { @apply tw-mt-px tw-text-indigo-500; }
+/* Form halaman panjang: bagian bernomor + tombol simpan menempel di bawah */
+form.is-sectioned { counter-reset: fsec; }
+form.is-sectioned .card > .card-header { @apply tw-flex tw-items-center tw-gap-2.5; }
+form.is-sectioned .card > .card-header::before {
+	counter-increment: fsec; content: counter(fsec);
+	@apply tw-grid tw-h-6 tw-w-6 tw-shrink-0 tw-place-items-center tw-rounded-full tw-bg-indigo-600 tw-text-[.72rem] tw-font-bold tw-text-white;
+}
+.is-sticky-actions {
+	@apply tw-sticky tw-bottom-0 tw-z-10 tw-mt-4 tw-flex tw-flex-wrap tw-items-center tw-gap-2 tw-rounded-xl tw-border tw-border-solid tw-border-slate-200 tw-px-4 tw-py-3;
+	background: rgba(255, 255, 255, .92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+	box-shadow: 0 -6px 20px rgba(15, 23, 42, .06);
+}
+.card-footer.is-sticky-actions { @apply tw-rounded-none tw-rounded-b-[inherit] tw-border-x-0 tw-border-b-0; }
+
+/* Kartu meja */
+.table-card { @apply tw-overflow-hidden tw-transition-shadow; border-top: 3px solid transparent !important; }
+.table-card:hover { box-shadow: 0 8px 24px rgba(15, 23, 42, .08); }
+.table-card.is-free { border-top-color: #10b981 !important; }
+.table-card.is-busy { border-top-color: #f59e0b !important; }
+.table-card.is-off { @apply tw-opacity-60; border-top-color: #cbd5e1 !important; }
+.table-card .table-no { @apply tw-text-2xl tw-font-bold tw-leading-none tw-tracking-tight tw-text-slate-900; }
+.table-card .table-state { @apply tw-rounded-full tw-px-2 tw-py-0.5 tw-text-[.68rem] tw-font-semibold; }
+.table-card.is-free .table-state { @apply tw-bg-emerald-50 tw-text-emerald-700; }
+.table-card.is-busy .table-state { @apply tw-bg-amber-50 tw-text-amber-700; }
+.table-card.is-off .table-state { @apply tw-bg-slate-100 tw-text-slate-500; }
+.table-card .card-footer { @apply tw-border-slate-100 tw-bg-transparent tw-p-2; }
+
+/* ================= Modal form ================= */
+.modal-content { @apply tw-border-0; box-shadow: 0 30px 80px rgba(15, 23, 42, .25); }
+.modal-header { @apply tw-gap-3 tw-border-slate-100 tw-px-5 tw-py-4; }
+.modal-title { @apply tw-text-[1.05rem] tw-font-semibold tw-text-slate-900; }
+.modal-footer { @apply tw-gap-2 tw-border-slate-100 tw-bg-slate-50/70 tw-px-5 tw-py-3; }
+.modal-footer > * { @apply tw-m-0; }
+.modal-body { @apply tw-px-5 tw-py-5; }
+.ui-modal-icon { @apply tw-grid tw-h-9 tw-w-9 tw-shrink-0 tw-place-items-center tw-rounded-xl tw-bg-indigo-50 tw-text-indigo-600; }
+.ui-modal-loading { @apply tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-3 tw-py-12 tw-text-sm tw-text-slate-500; }
+/* Isi halaman form di dalam modal: kartu jadi bagian polos. */
+.ui-modal .modal-body .card { border: 0 !important; box-shadow: none !important; background: transparent; max-width: none !important; border-radius: 0; }
+.ui-modal .modal-body .card > .card-body { padding: 0; }
+.ui-modal .modal-body .card > .card-header { @apply tw-mb-3 tw-flex tw-items-center tw-gap-2 tw-border-0 tw-bg-transparent tw-p-0 tw-text-[.72rem] tw-font-semibold tw-uppercase tw-tracking-[.1em] tw-text-slate-500; }
+.ui-modal .modal-body .card > .card-header::after { content: ""; @apply tw-h-px tw-flex-1 tw-bg-slate-200; }
+.ui-modal .modal-body .card > .card-footer { @apply tw-border-0 tw-bg-transparent tw-px-0; }
+.ui-modal .modal-body .card + .card, .ui-modal .modal-body form > .card ~ .card { @apply tw-mt-5; }
+.ui-modal .modal-body .row > [class*="col"] > .card + .card { @apply tw-mt-5; }
+.ui-modal .modal-body .mb-3:last-child { margin-bottom: 0 !important; }
+.ui-modal .modal-body .ui-back { display: none; }
+.ui-modal .modal-footer form { @apply tw-m-0; }
+@media (min-width: 576px) { .ui-modal .modal-dialog-scrollable .modal-content { max-height: calc(100vh - 3rem); } }
+
 /* ================= Form ================= */
 .form-label { @apply tw-mb-1.5 tw-text-[.84rem] tw-font-medium tw-text-slate-700; }
 label.is-required::after { content: " *"; @apply tw-text-rose-500; }
@@ -242,7 +294,10 @@ label.is-required::after { content: " *"; @apply tw-text-rose-500; }
 .input-group-text { @apply tw-border-slate-200 tw-bg-slate-50 tw-text-slate-500; }
 .form-text { @apply tw-text-xs tw-text-slate-500; }
 .form-check-input { @apply tw-border-slate-300; }
-.form-switch .form-check-input { width: 2.4em; height: 1.3em; margin-top: .1em; cursor: pointer; }
+.form-switch { padding-left: 3.1em; }
+.form-switch .form-check-input { width: 2.4em; height: 1.3em; margin-top: .1em; margin-left: -3.1em; cursor: pointer; }
+.form-switch.m-0 { padding-left: 0; }
+.form-switch.m-0 .form-check-input { margin-left: 0; }
 .form-check-label { @apply tw-cursor-pointer; }
 .card-header > .bi:first-child, .card-header > span > .bi:first-child { @apply tw-mr-1 tw-text-indigo-500; }
 .card-header { @apply tw-flex-wrap tw-gap-y-1; }

@@ -171,7 +171,8 @@ window.UI = (function () {
 
 	// Submit form -> spinner di tombol + progress bar; cegah submit ganda.
 	function onSubmit(form, submitter) {
-		if (form.target && form.target !== '_self') return;
+		var tgt = form.getAttribute('target');
+		if (tgt && tgt !== '_self') return;
 		var post = (form.getAttribute('method') || 'get').toLowerCase() === 'post';
 		form.setAttribute('data-ui-submitting', '1');
 		if (!submitter || submitter.form !== form) submitter = form.querySelector('button[type=submit], button:not([type]), input[type=submit]');
@@ -181,7 +182,7 @@ window.UI = (function () {
 	document.addEventListener('submit', function (e) {
 		if (e.defaultPrevented) return;
 		var form = e.target;
-		if (form.hasAttribute('data-no-loader')) return;
+		if (form.hasAttribute('data-no-loader') || form.hasAttribute('data-ui-modal')) return;
 		if (form.hasAttribute('data-ui-submitting')) { e.preventDefault(); return; }
 		onSubmit(form, e.submitter);
 	});
@@ -333,6 +334,24 @@ window.UI = (function () {
 	}
 	document.addEventListener('DOMContentLoaded', function () { initTables(); });
 
+	/* ---------------- Form halaman panjang ---------------- */
+	document.addEventListener('DOMContentLoaded', function () {
+		document.querySelectorAll('.content form').forEach(function (form) {
+			if ((form.getAttribute('method') || '').toLowerCase() !== 'post' || form.closest('template, .modal, table')) return;
+			// Bagian bernomor bila form terdiri dari >= 2 kartu ber-header.
+			if (form.querySelectorAll('.card > .card-header').length >= 2) form.classList.add('is-sectioned');
+			// Baris tombol simpan menempel di bawah layar bila form lebih tinggi dari layar.
+			if (form.offsetHeight < window.innerHeight * 0.9) return;
+			var submits = form.querySelectorAll('button[type=submit], button:not([type])');
+			var last = submits[submits.length - 1];
+			if (!last) return;
+			var box = last.parentElement;
+			if (!box || box === form || box.querySelector('input:not([type=hidden]), select, textarea, table')) return;
+			if (box.classList.contains('form-actions') || box.classList.contains('is-sticky-actions')) return;
+			box.classList.add('is-sticky-actions');
+		});
+	});
+
 	/* ---------------- Form: tanda wajib isi ---------------- */
 	document.addEventListener('DOMContentLoaded', function () {
 		document.querySelectorAll('.content [required][id]').forEach(function (inp) {
@@ -341,11 +360,229 @@ window.UI = (function () {
 		});
 	});
 
+	/* ---------------- Form di modal ----------------
+	 * 1) Rute: tautan ke halaman form sederhana dibuka di modal. Halaman diambil dengan header
+	 *    X-Modal: 1 (server hanya mengirim isi form), disimpan lewat fetch. Error validasi tampil
+	 *    di modal; sukses (redirect) -> halaman dimuat ulang dan pesan tampil sebagai toast.
+	 *    Tautan lain bisa memakai <a data-modal="lg"> ; <a data-no-modal> untuk halaman penuh.
+	 * 2) Template: <button data-modal-template="#tpl" data-fill='{"name":".."}' data-modal-title="..">
+	 *    mengkloning <template id="tpl"> (berisi form) dan mengisi field sesuai data-fill.
+	 */
+	var MODAL_ROUTES = [
+		[/\/inventory\/categories\/(create|edit)\b/, 'md', 'diagram-3'],
+		[/\/menu\/categories\/(create|edit)\b/, 'md', 'diagram-3'],
+		[/\/sales\/customers\/form\b/, 'md', 'person-vcard'],
+		[/\/inventory\/suppliers\/(create|edit)\b/, 'lg', 'truck'],
+		[/\/admin\/users\/(create|edit)\b/, 'lg', 'person'],
+		[/\/inventory\/ingredients\/(create|edit)\b/, 'xl', 'box-seam']
+	];
+	var modalEl = null, modal = null;
+	function modalShell() {
+		if (modalEl) return modalEl;
+		modalEl = document.createElement('div');
+		modalEl.className = 'modal fade ui-modal';
+		modalEl.tabIndex = -1;
+		modalEl.setAttribute('aria-hidden', 'true');
+		modalEl.innerHTML = '<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down"><div class="modal-content">' +
+			'<div class="modal-header"><span class="ui-modal-icon"><i class="bi bi-pencil-square"></i></span><h5 class="modal-title"></h5>' +
+			'<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>' +
+			'<div class="modal-body"></div><div class="modal-footer"></div></div></div>';
+		document.body.appendChild(modalEl);
+		modal = bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: 'static' });
+		modalEl.addEventListener('hidden.bs.modal', function () { modalEl.querySelector('.modal-body').innerHTML = ''; modalEl.querySelector('.modal-footer').innerHTML = ''; });
+		// Esc / klik tutup tetap bisa; backdrop 'static' mencegah isian hilang karena klik di luar.
+		modalEl.addEventListener('keydown', function (e) { if (e.key === 'Escape') modal.hide(); });
+		return modalEl;
+	}
+	function modalOpen(title, size, icon) {
+		var el = modalShell();
+		var dlg = el.querySelector('.modal-dialog');
+		dlg.classList.remove('modal-sm', 'modal-lg', 'modal-xl');
+		if (size && size !== 'md') dlg.classList.add('modal-' + size);
+		el.querySelector('.modal-title').textContent = title || '';
+		el.querySelector('.ui-modal-icon i').className = 'bi bi-' + (icon || 'pencil-square');
+		el.querySelector('.modal-body').innerHTML = '<div class="ui-modal-loading"><span class="ui-spinner"></span><span>Memuat form…</span></div>';
+		el.querySelector('.modal-footer').innerHTML = '';
+		modal.show();
+		return el;
+	}
+	function runScripts(root) {
+		root.querySelectorAll('script').forEach(function (old) {
+			var s = document.createElement('script');
+			[].slice.call(old.attributes).forEach(function (a) { s.setAttribute(a.name, a.value); });
+			s.textContent = old.textContent;
+			old.parentNode.replaceChild(s, old);
+		});
+	}
+	var formSeq = 0;
+	function mount(el, html, ajax) {
+		var body = el.querySelector('.modal-body'), foot = el.querySelector('.modal-footer');
+		if (typeof html === 'string') body.innerHTML = html; else { body.innerHTML = ''; body.appendChild(html); }
+		foot.innerHTML = '';
+		var form = body.querySelector('form[method="post"], form[method="POST"]') || body.querySelector('form');
+		if (!form) return;
+		// Pakai atribut: form.id / form.action bisa tertimpa field bernama "id" / "action".
+		var fid = form.getAttribute('id');
+		if (!fid) { fid = 'ui-modal-form-' + (++formSeq); form.setAttribute('id', fid); }
+		// Tombol aksi (baris tombol simpan terakhir) dipindah ke footer modal.
+		var submits = form.querySelectorAll('button[type=submit], button:not([type])');
+		var last = submits[submits.length - 1];
+		if (last) {
+			var box = last.parentElement;
+			while (box && box !== form && box.querySelectorAll('input:not([type=hidden]), select, textarea').length) box = null;
+			if (box && box !== form) {
+				[].slice.call(box.querySelectorAll('button, a.btn')).forEach(function (b) {
+					if (b.tagName === 'A' && /batal|kembali/i.test(b.textContent)) {
+						var c = document.createElement('button');
+						c.type = 'button'; c.className = 'btn btn-light'; c.textContent = 'Batal'; c.setAttribute('data-bs-dismiss', 'modal');
+						foot.appendChild(c);
+						b.remove();
+						return;
+					}
+					if (b.tagName === 'BUTTON') { b.setAttribute('form', fid); b.classList.remove('w-100'); }
+					foot.appendChild(b);
+				});
+				if (!box.querySelector('input, select, textarea, button, a') && !box.textContent.trim()) box.remove();
+				// Batal di kiri, simpan di kanan.
+				var cancel = foot.querySelector('[data-bs-dismiss]');
+				if (cancel) foot.insertBefore(cancel, foot.firstChild);
+			}
+		}
+		if (!foot.querySelector('[data-bs-dismiss]')) {
+			var x = document.createElement('button');
+			x.type = 'button'; x.className = 'btn btn-light'; x.textContent = 'Batal'; x.setAttribute('data-bs-dismiss', 'modal');
+			foot.insertBefore(x, foot.firstChild);
+		}
+		runScripts(body);
+		form.setAttribute('data-ui-modal', '1');
+		body.querySelectorAll('[required][id]').forEach(function (inp) {
+			var lb = body.querySelector('label[for="' + inp.id + '"]');
+			if (lb) lb.classList.add('is-required');
+		});
+		document.dispatchEvent(new CustomEvent('ui:fragment', { detail: body }));
+		var first = form.querySelector('input:not([type=hidden]):not([readonly]):not([disabled]), select, textarea');
+		if (first) setTimeout(function () { try { first.focus(); } catch (e) {} }, 350);
+	}
+
+	function openUrl(url, size, icon, title) {
+		var el = modalOpen(title || 'Memuat…', size, icon);
+		return fetch(url, { headers: { 'X-Modal': '1', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+			.then(function (r) {
+				if (!r.ok || r.redirected) throw new Error('fallback');
+				var t = r.headers.get('X-Page-Title');
+				if (t) el.querySelector('.modal-title').textContent = decodeURIComponent(t);
+				return r.text();
+			})
+			.then(function (html) { mount(el, html, true); })
+			.catch(function () { modal.hide(); start({ immediate: true }); location.href = url; });
+	}
+
+	// Simpan form modal lewat fetch; redirect = sukses.
+	document.addEventListener('submit', function (e) {
+		var form = e.target;
+		if (!form.hasAttribute('data-ui-modal') || e.defaultPrevented) return;
+		e.preventDefault();
+		if (form.dataset.uiBusy === '1') return;
+		form.dataset.uiBusy = '1';
+		var submitter = e.submitter;
+		if (!submitter || (submitter.form !== form)) submitter = modalEl.querySelector('.modal-footer button[form="' + form.getAttribute('id') + '"]');
+		if (submitter) buttonLoading(submitter);
+		start({ immediate: true });
+		var fd = new FormData(form);
+		if (submitter && submitter.name) fd.append(submitter.name, submitter.value);
+		fetch(form.getAttribute('action') || location.href, { method: 'POST', body: fd, headers: { 'X-Modal': '1', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin', redirect: 'manual' })
+			.then(function (r) {
+				if (r.type === 'opaqueredirect' || (r.status >= 300 && r.status < 400)) {
+					modal.hide();
+					start({ immediate: true, overlay: true, text: 'Memuat ulang…' });
+					location.reload();
+					return;
+				}
+				return r.text().then(function (html) {
+					done();
+					if (!r.ok) throw new Error('HTTP ' + r.status);
+					mount(modalEl, html, true);
+					modalEl.querySelector('.modal-body').scrollTop = 0;
+				});
+			})
+			.catch(function () {
+				delete form.dataset.uiBusy;
+				reset();
+				toast('Gagal menyimpan. Periksa koneksi lalu coba lagi.', 'error');
+			});
+	});
+
+	document.addEventListener('click', function (e) {
+		if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
+		// Template form
+		var tbtn = e.target.closest('[data-modal-template]');
+		if (tbtn) {
+			e.preventDefault();
+			var tpl = document.querySelector(tbtn.getAttribute('data-modal-template'));
+			if (!tpl || !window.bootstrap) return;
+			var el = modalOpen(tbtn.getAttribute('data-modal-title') || tpl.getAttribute('data-title') || '', tbtn.getAttribute('data-modal-size') || tpl.getAttribute('data-size'), tbtn.getAttribute('data-modal-icon') || tpl.getAttribute('data-icon'));
+			var frag = tpl.content.cloneNode(true);
+			var data = {};
+			try { data = JSON.parse(tbtn.getAttribute('data-fill') || '{}'); } catch (err) { data = {}; }
+			var wrap = document.createElement('div');
+			wrap.appendChild(frag);
+			var form = wrap.querySelector('form');
+			if (form) {
+				Object.keys(data).forEach(function (k) {
+					var f = form.elements[k];
+					if (!f) return;
+					var v = data[k] == null ? '' : String(data[k]);
+					if (f.type === 'checkbox') f.checked = !!data[k] && data[k] !== '0';
+					else if (f.tagName === 'SELECT' && ![].some.call(f.options, function (o) { return o.value === v; })) f.setAttribute('data-selected', v); // opsi diisi skrip halaman
+					else f.value = v;
+				});
+				// Elemen khusus mode ubah / tambah.
+				var editing = !!data.id;
+				wrap.querySelectorAll('[data-if-edit]').forEach(function (n) { if (!editing) n.remove(); });
+				wrap.querySelectorAll('[data-if-new]').forEach(function (n) { if (editing) n.remove(); });
+				// Aksi tambahan (mis. form hapus) disisipkan dari tombol pemicu.
+				var del = wrap.querySelector('[data-delete-form]');
+				if (del) {
+					if (tbtn.getAttribute('data-delete-url') && editing) del.setAttribute('action', tbtn.getAttribute('data-delete-url'));
+					else del.remove();
+				}
+			}
+			mount(el, wrap, false);
+			// Form hapus di footer (kiri).
+			var delForm = el.querySelector('.modal-body [data-delete-form]');
+			if (delForm) {
+				var foot = el.querySelector('.modal-footer');
+				delForm.classList.add('me-auto');
+				foot.insertBefore(delForm, foot.firstChild);
+				delForm.removeAttribute('data-ui-modal');
+			}
+			return;
+		}
+		// Rute modal
+		var a = e.target.closest('a[href]');
+		if (!a || a.target || a.hasAttribute('data-no-modal') || !window.bootstrap) return;
+		if (a.closest('.ui-modal')) return;
+		var url;
+		try { url = new URL(a.href, location.href); } catch (err) { return; }
+		if (url.origin !== location.origin) return;
+		var size = a.getAttribute('data-modal'), icon = a.getAttribute('data-modal-icon');
+		if (size === null) {
+			var path = url.pathname + url.search;
+			for (var i = 0; i < MODAL_ROUTES.length; i++) {
+				if (MODAL_ROUTES[i][0].test(path)) { size = MODAL_ROUTES[i][1]; icon = icon || MODAL_ROUTES[i][2]; break; }
+			}
+		}
+		if (size === null) return;
+		e.preventDefault(); e.stopImmediatePropagation();
+		openUrl(url.href, size || 'md', icon, a.getAttribute('data-modal-title') || a.textContent.trim());
+	}, true);
+
 	return {
 		loading: { start: start, done: done, reset: reset, button: buttonLoading },
 		confirm: confirmDialog,
 		alert: alertDialog,
 		toast: toast,
-		initTables: initTables
+		initTables: initTables,
+		openModal: openUrl
 	};
 })();

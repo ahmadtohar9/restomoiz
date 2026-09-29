@@ -1,54 +1,73 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 $num = function ($v) { return $v === NULL ? '' : rtrim(rtrim(number_format((float) $v, 4, '.', ''), '0'), '.'); };
 $edit = can('menu.edit');
-$form = function ($m) use ($ingredients, $num) {
-	ob_start(); ?>
-	<?= form_open('menu/modifiers/save', array('class' => 'row g-2 align-items-end')) ?>
-		<input type="hidden" name="id" value="<?= $m ? (int) $m['id'] : 0 ?>">
-		<div class="col-md-3"><label class="form-label small">Nama</label><input class="form-control form-control-sm" name="name" value="<?= e($m ? $m['name'] : '') ?>" maxlength="100" required placeholder="mis. Telur ceplok"></div>
-		<div class="col-md-2"><label class="form-label small">Harga</label><input class="form-control form-control-sm" type="number" min="0" step="any" name="price" value="<?= e($m ? $num($m['price']) : '') ?>" <?= can('menu.edit_price') ? '' : 'readonly' ?>></div>
-		<div class="col-md-3"><label class="form-label small">Bahan (opsional)</label>
-			<select class="form-select form-select-sm mod-ing" name="ingredient_id"><option value="">— tanpa bahan —</option>
-				<?php foreach ($ingredients as $i): ?><option value="<?= $i['id'] ?>" data-units="<?= e(json_encode($i['units'])) ?>" <?= $m && (int) $m['ingredient_id'] === (int) $i['id'] ? 'selected' : '' ?>><?= e($i['name']) ?></option><?php endforeach; ?>
-			</select></div>
-		<div class="col-md-2"><label class="form-label small">Pakai per porsi</label>
-			<div class="input-group input-group-sm"><input class="form-control" type="number" min="0" step="any" name="qty" value="<?= e($m && $m['qty_std'] ? $num($m['qty_std']) : '') ?>">
-				<select class="form-select mod-unit" name="unit" data-selected="<?= e($m ? (string) $m['unit'] : '') ?>" style="max-width: 80px"></select></div></div>
-		<div class="col-md-1"><label class="form-label small">Urutan</label><input class="form-control form-control-sm" type="number" name="sort_order" value="<?= $m ? (int) $m['sort_order'] : 0 ?>"></div>
-		<div class="col-md-1"><div class="form-check small mb-1"><input class="form-check-input" type="checkbox" name="is_active" value="1" <?= ! $m || $m['is_active'] ? 'checked' : '' ?>> aktif</div><button class="btn btn-sm btn-primary w-100"><?= $m ? 'Simpan' : 'Tambah' ?></button></div>
-	<?= form_close() ?>
-	<?php return ob_get_clean();
-};
 ?>
-<p class="text-muted small">Tambahan berbayar yang bisa dipilih kasir untuk setiap item (topping, extra shot, dll). Jika dihubungkan ke bahan baku, stok ikut berkurang saat terjual. Jumlah pemakaian dalam satuan standar bahan.</p>
-<div class="card mb-3">
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+	<p class="text-muted small mb-0 flex-fill" style="max-width: 760px">Tambahan berbayar yang bisa dipilih kasir untuk setiap item (topping, extra shot, dll). Jika dihubungkan ke bahan baku, stok ikut berkurang saat terjual.</p>
+	<?php if ($edit): ?>
+		<button type="button" class="btn btn-primary" data-modal-template="#tpl-modifier" data-modal-title="Tambah tambahan / topping"><i class="bi bi-plus-lg"></i> Tambah</button>
+	<?php endif; ?>
+</div>
+<div class="card">
 	<div class="table-responsive">
 		<table class="table align-middle mb-0">
-			<thead><tr><th>Tambahan</th><th class="text-end">Harga</th><th>Bahan</th><th></th></tr></thead>
+			<thead><tr><th>Tambahan</th><th class="text-end">Harga</th><th>Bahan per porsi</th><th class="text-end">Urutan</th><th>Status</th><?php if ($edit): ?><th></th><?php endif; ?></tr></thead>
 			<tbody>
-			<?php if (empty($rows)): ?><tr><td colspan="4" class="text-center text-muted py-3">Belum ada tambahan.</td></tr><?php endif; ?>
+			<?php if (empty($rows)): ?><tr><td colspan="<?= $edit ? 6 : 5 ?>" class="text-center text-muted py-4">Belum ada tambahan.</td></tr><?php endif; ?>
 			<?php foreach ($rows as $m): ?>
 				<tr class="<?= $m['is_active'] ? '' : 'text-muted' ?>">
-					<td><?= e($m['name']) ?> <?= $m['is_active'] ? '' : '<span class="badge text-bg-secondary">nonaktif</span>' ?></td>
+					<td class="fw-medium"><?= e($m['name']) ?></td>
 					<td class="text-end"><?= rupiah($m['price']) ?></td>
-					<td class="small"><?= $m['ingredient_name'] ? e($m['ingredient_name']) . ' ' . qty($m['qty_std'], 4) . ' ' . e($m['unit']) : '-' ?></td>
-					<td class="text-end"><?php if ($edit): ?><a href="#" class="small" data-bs-toggle="collapse" data-bs-target="#m<?= $m['id'] ?>">ubah</a><?php endif; ?></td>
+					<td class="small"><?= $m['ingredient_name'] ? e($m['ingredient_name']) . ' · ' . qty($m['qty_std'], 4) . ' ' . e($m['unit']) : '-' ?></td>
+					<td class="text-end"><?= (int) $m['sort_order'] ?></td>
+					<td><?= $m['is_active'] ? '<span class="badge text-bg-success">aktif</span>' : '<span class="badge text-bg-secondary">nonaktif</span>' ?></td>
+					<?php if ($edit): ?>
+					<td class="text-end">
+						<button type="button" class="btn btn-sm btn-outline-secondary" data-modal-template="#tpl-modifier" data-modal-title="Ubah <?= e($m['name']) ?>"
+							data-fill="<?= e(json_encode(array('id' => (int) $m['id'], 'name' => $m['name'], 'price' => $num($m['price']), 'ingredient_id' => $m['ingredient_id'] ? (string) $m['ingredient_id'] : '', 'qty' => $m['qty_std'] ? $num($m['qty_std']) : '', 'unit' => (string) $m['unit'], 'sort_order' => (int) $m['sort_order'], 'is_active' => (int) $m['is_active']))) ?>"><i class="bi bi-pencil"></i> Ubah</button>
+					</td>
+					<?php endif; ?>
 				</tr>
-				<?php if ($edit): ?><tr class="collapse" id="m<?= $m['id'] ?>"><td colspan="4" class="bg-light"><?= $form($m) ?></td></tr><?php endif; ?>
 			<?php endforeach; ?>
 			</tbody>
 		</table>
 	</div>
 </div>
-<?php if ($edit): ?><div class="card"><div class="card-header">Tambah</div><div class="card-body"><?= $form(NULL) ?></div></div><?php endif; ?>
+
+<?php if ($edit): ?>
+<template id="tpl-modifier" data-icon="plus-circle">
+	<?= form_open('menu/modifiers/save') ?>
+		<input type="hidden" name="id" value="0">
+		<div class="row g-3">
+			<div class="col-sm-8"><label class="form-label" for="mod-name">Nama</label><input class="form-control" id="mod-name" name="name" maxlength="100" required placeholder="mis. Telur ceplok"></div>
+			<div class="col-sm-4"><label class="form-label" for="mod-price">Harga</label>
+				<div class="input-group"><span class="input-group-text">Rp</span><input class="form-control" type="number" min="0" step="any" id="mod-price" name="price" <?= can('menu.edit_price') ? '' : 'readonly' ?>></div></div>
+			<div class="col-12"><div class="form-section-note"><i class="bi bi-box-seam"></i> Hubungkan ke bahan baku agar stok berkurang otomatis saat terjual (opsional).</div></div>
+			<div class="col-sm-7"><label class="form-label" for="mod-ing">Bahan baku</label>
+				<select class="form-select mod-ing" id="mod-ing" name="ingredient_id"><option value="">— tanpa bahan —</option>
+					<?php foreach ($ingredients as $i): ?><option value="<?= $i['id'] ?>" data-units="<?= e(json_encode($i['units'])) ?>"><?= e($i['name']) ?></option><?php endforeach; ?>
+				</select></div>
+			<div class="col-sm-5"><label class="form-label" for="mod-qty">Pakai per porsi</label>
+				<div class="input-group"><input class="form-control" type="number" min="0" step="any" id="mod-qty" name="qty"><select class="form-select mod-unit" name="unit" style="max-width: 96px"></select></div></div>
+			<div class="col-sm-4"><label class="form-label" for="mod-sort">Urutan tampil</label><input class="form-control" type="number" id="mod-sort" name="sort_order" value="0"></div>
+			<div class="col-sm-8 d-flex align-items-end"><div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" role="switch" id="mod-active" name="is_active" value="1" checked><label class="form-check-label" for="mod-active">Aktif (bisa dipilih kasir)</label></div></div>
+		</div>
+		<div class="ui-actions"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> Simpan</button></div>
+	<?= form_close() ?>
+</template>
+<?php endif; ?>
 <script>
-document.querySelectorAll('.mod-ing').forEach(function (sel) {
-	var form = sel.closest('form'), unit = form.querySelector('.mod-unit');
-	var fill = function () {
+(function () {
+	// Pilihan satuan mengikuti bahan yang dipilih (juga untuk form di modal).
+	function fill(sel) {
+		var form = sel.closest('form'), unit = form && form.querySelector('.mod-unit');
+		if (!unit) return;
 		var opt = sel.selectedOptions[0], units = opt && opt.getAttribute('data-units') ? JSON.parse(opt.getAttribute('data-units')) : [];
-		var want = unit.getAttribute('data-selected');
-		unit.innerHTML = units.map(function (u) { return '<option' + (u.unit === want ? ' selected' : '') + '>' + u.unit + '</option>'; }).join('');
-	};
-	sel.addEventListener('change', fill); fill();
-});
+		var want = unit.getAttribute('data-selected') || unit.value;
+		unit.innerHTML = '';
+		units.forEach(function (u) { var o = document.createElement('option'); o.textContent = u.unit; o.selected = u.unit === want; unit.appendChild(o); });
+	}
+	document.addEventListener('change', function (e) { if (e.target.classList.contains('mod-ing')) fill(e.target); });
+	document.addEventListener('ui:fragment', function (e) { e.detail.querySelectorAll('.mod-ing').forEach(fill); });
+})();
 </script>

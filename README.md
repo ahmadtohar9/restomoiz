@@ -154,6 +154,7 @@ Semua aset front-end disajikan lokal dari `public/assets/` — tidak ada CDN, ap
 - `public/assets/js/ui.js` (semua aset lokal di `public/assets/vendor`):
   - **DataTables** (cari, urut, halaman, responsif di HP) otomatis untuk tabel daftar di halaman index dan tabel > 10 baris. Rupiah/angka/tanggal Indonesia terurut benar. `data-dt="false"` = matikan, `data-dt="true"` = paksa, `data-dt-paging="false"` = paging tetap dari server. Tabel berisi input/checkbox form dan tabel rowspan dilewati agar data form tetap terkirim.
   - **SweetAlert2**: `<form data-confirm="...">`, `<button data-confirm-click="...">`, flash message jadi toast; JS: `UI.confirm(msg)`, `UI.alert(msg, icon)`, `UI.toast(msg, icon)`.
+  - **Form di modal**: tautan ke form sederhana (kategori, pelanggan, supplier, user, bahan baku) otomatis dibuka di modal (daftar rute di `MODAL_ROUTES`, atau `<a data-modal="lg">`). Server mengirim isi form saja bila ada header `X-Modal: 1` (`MY_Controller::render` → `layout/modal.php`); error validasi tampil di modal, sukses → halaman dimuat ulang + toast. Halaman dengan form inline memakai `<template>` + `<button data-modal-template="#id" data-fill='{..}'>` (Meja, Tambahan & Topping, Pengeluaran). Form panjang di halaman penuh mendapat nomor bagian dan tombol simpan yang menempel di bawah.
   - **Spinner**: progress bar saat pindah halaman / `fetch()`, spinner di tombol + overlay "Menyimpan…" saat submit form POST, submit ganda dicegah. `fetch` dengan header `X-Silent: 1` (polling dapur) tidak memicu progress bar.
 
 ## Keamanan

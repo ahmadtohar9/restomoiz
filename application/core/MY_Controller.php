@@ -80,6 +80,16 @@ class MY_Controller extends CI_Controller {
 	protected function render($view, array $data = array())
 	{
 		$data['content_view'] = $view;
+		// Dibuka di modal (ui.js mengirim header X-Modal): hanya isi halaman, tanpa sidebar/topbar.
+		if ($this->input->get_request_header('X-Modal') === '1')
+		{
+			$data['is_modal'] = TRUE;
+			$this->output->set_header('X-Page-Title: ' . rawurlencode(isset($data['title']) ? $data['title'] : ''));
+			$this->output->set_header('Cache-Control: no-store');
+			$this->load->view('layout/modal', $data);
+			return;
+		}
+		$data['is_modal'] = FALSE;
 		$this->load->view('layout/main', $data);
 	}
 
