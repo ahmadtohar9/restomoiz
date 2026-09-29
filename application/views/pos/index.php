@@ -109,7 +109,7 @@ $CI =& get_instance();
 				<tr class="pos-grand"><td>Total</td><td class="text-end" id="t-total">Rp 0</td></tr>
 			</table>
 			<div class="pos-actions">
-				<button class="btn btn-kitchen" id="btn-kitchen" disabled><i class="bi bi-send"></i><span>Kirim ke Dapur</span></button>
+				<button class="btn btn-kitchen" id="btn-kitchen" disabled><i class="bi bi-send"></i><span><span class="k-pre">Kirim ke </span>Dapur</span></button>
 				<?php if ($can_pay): ?><button class="btn btn-pay" id="btn-pay" disabled><i class="bi bi-wallet2"></i><span>Bayar</span> <b id="btn-pay-amt"></b></button><?php endif; ?>
 			</div>
 		</div>

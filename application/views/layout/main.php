@@ -105,7 +105,7 @@ $role_label = implode(', ', $current_user['role_names']) ?: 'Tanpa role';
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
 	<title><?= e(isset($title) ? $title . ' · ' : '') ?>Resto Moiz</title>
-	<script>try { if (localStorage.getItem('rm.sbCollapsed') === '1') document.documentElement.classList.add('sb-collapsed'); } catch (e) {}</script>
+	<script>try { var sb = localStorage.getItem('rm.sbCollapsed'); if (sb === '1' || (sb === null && innerWidth >= 992 && innerWidth < 1280)) document.documentElement.classList.add('sb-collapsed'); } catch (e) {}</script>
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/inter/inter.css') ?>">
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">

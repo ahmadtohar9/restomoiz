@@ -183,8 +183,31 @@
 .done-change { font-size: 1.6rem; font-weight: 800; color: #059669; }
 
 /* ---------- Tablet & HP ---------- */
-@media (max-width: 1199.98px) { :root { --pos-cart-w: 360px; } .pos-nav span { display: none; } }
-@media (max-width: 991.98px) {
+/* Laptop kecil / tablet landscape */
+@media (max-width: 1199.98px) {
+	:root { --pos-cart-w: 360px; }
+	.pos-nav span { display: none; }
+	.pos-extra { grid-template-columns: 1fr; }
+	.k-pre { display: none; }
+}
+/* Tablet portrait: katalog & keranjang tetap berdampingan (seperti mesin kasir) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+	:root { --pos-cart-w: 320px; }
+	.pos-top { padding: .5rem .75rem; gap: .5rem; }
+	.pos-user { display: none !important; }
+	.pos-brand > span:not(.brand-logo) { display: none !important; }
+	.pos-left { padding: .75rem .75rem 0; gap: .6rem; }
+	.pos-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: .6rem; }
+	.pos-scan { display: none; }
+	.pos-search input { padding-right: 1rem; }
+	.pos-seg label { font-size: .78rem; gap: .25rem; }
+	.pos-cart-head, .pos-order-opts, .pos-cart-items, .pos-cart-foot { padding-left: .8rem; padding-right: .8rem; }
+	.pos-actions { grid-template-columns: 1fr; }
+	.pos-actions .btn { min-height: 3rem; }
+	.mc-body { padding: .5rem .6rem .6rem; }
+}
+/* HP: katalog di atas, keranjang di bawah + bar melayang */
+@media (max-width: 767.98px) {
 	.pos-body { height: auto; overflow: auto; }
 	.pos-main { flex-direction: column; }
 	.pos-left { padding: .75rem .75rem 0; }
@@ -196,13 +219,27 @@
 	.pos-top-mid { order: 3; flex-basis: 100%; }
 	.pos-open { max-width: none; }
 	.pos-top-end { margin-left: auto; }
+	.pos-user { display: none !important; }
 	.pos-fab { position: fixed; left: .75rem; right: .75rem; bottom: .75rem; z-index: 1030; display: flex; align-items: center; gap: .6rem; padding: .8rem 1rem; border-radius: 1rem; background: var(--pos-ink); color: #fff; text-decoration: none; font-weight: 600; box-shadow: 0 12px 30px rgba(15, 23, 42, .35); }
 	.pos-fab b { margin-left: auto; font-size: 1.05rem; }
 	.pos-fab:hover { color: #fff; }
+	.k-pre { display: inline; }
 }
 @media (max-width: 575.98px) {
 	.pos-search input { font-size: .95rem; padding-right: 1rem; }
 	.pos-scan { display: none; }
-	.pos-extra { grid-template-columns: 1fr; }
 	.mc-initials { font-size: 1.5rem; }
+}
+/* Layar sentuh (tablet/HP): target ketuk lebih besar */
+@media (pointer: coarse) {
+	.cl-step { width: 40px; height: 40px; border-radius: .75rem; }
+	.cl-n { min-width: 2.2rem; font-size: 1.05rem; }
+	.pos-chip { padding: .6rem 1rem; }
+	.pos-seg label { padding: .6rem .25rem; }
+	.im-chip { padding: .55rem .9rem; }
+	.cash-chip { padding: .65rem 1rem; }
+	.im-stepper button { width: 3rem; height: 3rem; }
+	.pos-nav a { padding: .55rem .65rem; }
+	.menu-card:hover { box-shadow: none; }
+	.pos-cart-items, .pos-grid, .pos-cats { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 }

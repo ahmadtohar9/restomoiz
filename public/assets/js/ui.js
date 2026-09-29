@@ -291,6 +291,13 @@ window.UI = (function () {
 		heads.forEach(function (th, i) {
 			if (!th.textContent.trim() || th.hasAttribute('data-dt-nosort')) defs.push({ targets: i, orderable: false, searchable: false });
 		});
+		// Kolom yang seluruh isinya kosong disembunyikan duluan di layar sempit.
+		var bodyRows = table.tBodies[0] ? [].slice.call(table.tBodies[0].rows) : [];
+		heads.forEach(function (th, i) {
+			if (i === 0 || i === heads.length - 1 || !bodyRows.length) return;
+			var empty = bodyRows.every(function (r) { var c = r.cells[i]; var t = c ? c.textContent.trim() : ''; return t === '' || t === '-'; });
+			if (empty) defs.push({ targets: i, responsivePriority: 100000 }); // default DataTables = 10000
+		});
 		defs.push({ targets: 0, responsivePriority: 1 });
 		if (last > 0) defs.push({ targets: last, responsivePriority: 2 });
 		var paging = table.getAttribute('data-dt-paging') !== 'false';

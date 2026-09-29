@@ -327,6 +327,23 @@ form.is-sectioned .card > .card-header::before {
 .ui-modal .modal-footer form { @apply tw-m-0; }
 @media (min-width: 576px) { .ui-modal .modal-dialog-scrollable .modal-content { max-height: calc(100vh - 3rem); } }
 
+/* ================= Tablet ================= */
+/* Tombol detail DataTables responsif: ikon di kiri sel, tidak memecah baris. */
+table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control { position: relative; padding-left: 2rem !important; }
+table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control::before { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); margin: 0 !important; }
+table.dataTable.dtr-inline.collapsed > tbody > tr.dtr-expanded > td.dtr-control::before { transform: translateY(-50%) rotate(90deg); }
+table.dataTable td.dt-type-numeric, table.dataTable th.dt-type-numeric { white-space: nowrap; }
+/* Bar filter 6 kolom terlalu sempit di tablet: jadi 3 kolom per baris. */
+@media (min-width: 768px) and (max-width: 991.98px) {
+	form.card[method="get"] > .card-body.row > .col-md-2, form.card[method="get"] > .card-body.row > .col-md-1 { flex: 0 0 auto; width: 33.3333%; }
+	form.card[method="get"] > .card-body.row > .col-md-3 { flex: 0 0 auto; width: 50%; }
+}
+@media (pointer: coarse) {
+	.sidebar-nav .nav-link { @apply tw-py-2.5; }
+	.btn-sm { min-height: 2.25rem; }
+	.dropdown-item { @apply tw-py-2; }
+}
+
 /* ================= Form ================= */
 .form-label { @apply tw-mb-1.5 tw-text-[.84rem] tw-font-medium tw-text-slate-700; }
 label.is-required::after { content: " *"; @apply tw-text-rose-500; }
