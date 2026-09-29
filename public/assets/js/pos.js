@@ -84,10 +84,13 @@
 	}
 
 	function renderCats() {
-		var html = '<button class="btn btn-sm ' + (state.cat === 0 ? 'btn-dark' : 'btn-outline-secondary') + '" data-cat="0">Semua</button>';
+		var count = function (id) { var ids = catDescendants(id); return state.catalog.menus.filter(function (m) { return ids.indexOf(m.category_id) > -1; }).length; };
+		var html = '<button type="button" class="pos-chip' + (state.cat === 0 ? ' is-active' : '') + '" data-cat="0"><i class="bi bi-grid"></i> Semua <span class="pos-chip-n">' + state.catalog.menus.length + '</span></button>';
 		state.catalog.categories.forEach(function (c) {
 			if (c.depth > 1) return;
-			html += '<button class="btn btn-sm ' + (state.cat === c.id ? 'btn-dark' : 'btn-outline-secondary') + '" data-cat="' + c.id + '">' + (c.depth ? '› ' : '') + esc(c.name) + '</button>';
+			var n = count(c.id);
+			if (!n) return;
+			html += '<button type="button" class="pos-chip' + (c.depth ? ' is-sub' : '') + (state.cat === c.id ? ' is-active' : '') + '" data-cat="' + c.id + '">' + esc(c.name) + ' <span class="pos-chip-n">' + n + '</span></button>';
 		});
 		$('categories').innerHTML = html;
 	}
@@ -110,14 +113,31 @@
 			var min = Math.min.apply(null, prices), max = Math.max.apply(null, prices);
 			var allOut = m.variants.every(function (v) { return v.avail === 'out' || v.avail === 'manual_out'; });
 			var low = m.variants.some(function (v) { return v.avail === 'low'; });
-			html += '<button type="button" class="menu-card' + (allOut ? ' is-out' : '') + '" data-menu="' + m.id + '"' + (allOut ? ' disabled' : '') + '>'
-				+ (m.image ? '<img src="' + esc(m.image) + '" alt="" loading="lazy">' : '')
-				+ '<span class="mc-name">' + esc(m.name) + '</span>'
-				+ '<span class="mc-price">' + rp(min) + (max > min ? ' – ' + rp(max) : '') + '</span>'
-				+ '<span class="mc-meta">' + (m.variants.length > 1 ? m.variants.length + ' varian' : '') + (allOut ? ' <span class="text-danger fw-semibold">HABIS</span>' : (low ? ' <span class="text-warning-emphasis">stok menipis</span>' : '')) + '</span>'
+			var hue = (m.category_id * 47 + 210) % 360;
+			var initials = m.name.split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase();
+			html += '<button type="button" class="menu-card' + (allOut ? ' is-out' : '') + '" data-menu="' + m.id + '"' + (allOut ? ' disabled' : '') + ' style="--hue:' + hue + '">'
+				+ '<span class="mc-media">' + (m.image ? '<img src="' + esc(m.image) + '" alt="" loading="lazy">' : '<span class="mc-initials">' + esc(initials) + '</span>')
+				+ (allOut ? '<span class="mc-flag is-out">Habis</span>' : (low ? '<span class="mc-flag is-low">Stok tipis</span>' : ''))
+				+ '<span class="mc-count" hidden></span></span>'
+				+ '<span class="mc-body"><span class="mc-name">' + esc(m.name) + '</span>'
+				+ '<span class="mc-meta">' + (m.variants.length > 1 ? m.variants.length + ' varian' : '&nbsp;') + '</span>'
+				+ '<span class="mc-price">' + rp(min) + (max > min ? '<small> – ' + rp(max) + '</small>' : '') + '</span></span>'
 				+ '</button>';
 		});
-		$('menu-grid').innerHTML = html || '<div class="text-muted p-4">Tidak ada menu yang cocok.</div>';
+		$('menu-grid').innerHTML = html || '<div class="pos-empty"><i class="bi bi-search"></i><div>Tidak ada menu yang cocok.</div></div>';
+		cardCounts();
+	}
+
+	// Jumlah porsi di keranjang per menu -> lencana di kartu menu.
+	function cardCounts() {
+		var per = {};
+		state.cart.forEach(function (c) { var r = state.variants[c.variant_id]; if (r) per[r.menu.id] = (per[r.menu.id] || 0) + c.qty; });
+		document.querySelectorAll('#menu-grid [data-menu]').forEach(function (b) {
+			var n = per[b.getAttribute('data-menu')] || 0, el = b.querySelector('.mc-count');
+			if (!el) return;
+			el.hidden = !n; el.textContent = n;
+			b.classList.toggle('in-cart', !!n);
+		});
 	}
 
 	function renderTables() {
@@ -171,32 +191,37 @@
 		var html = '';
 		state.existing.forEach(function (it) {
 			var st = { pending: 'Baru', preparing: 'Dimasak', ready: 'Siap', served: 'Diantar', void: 'Batal' }[it.kitchen_status];
-			html += '<div class="cart-line existing' + (it.kitchen_status === 'void' ? ' text-decoration-line-through' : '') + '"><div class="cl-main"><div class="cl-name">' + esc(it.name) + '</div>'
+			html += '<div class="cart-line existing' + (it.kitchen_status === 'void' ? ' is-void' : '') + '"><div class="cl-main"><div class="cl-name">' + esc(it.name) + '</div>'
 				+ '<div class="cl-sub">' + (it.modifiers || []).map(function (m) { return '+ ' + esc(m.name); }).join(', ') + (it.notes ? ' · ' + esc(it.notes) : '')
-				+ ' <span class="badge text-bg-light border">' + st + '</span></div></div>'
-				+ '<div class="cl-qty">' + it.qty + '×</div><div class="cl-total">' + rp(it.line_total) + '</div></div>';
+				+ ' <span class="cl-status st-' + it.kitchen_status + '">' + st + '</span></div></div>'
+				+ '<div class="cl-qty"><span class="cl-qty-fixed">' + it.qty + '×</span></div><div class="cl-total">' + rp(it.line_total) + '</div></div>';
 		});
-		if (state.existing.length && state.cart.length) html += '<div class="small text-muted pt-2">Tambahan baru:</div>';
+		if (state.existing.length) html = '<div class="cart-sep">Sudah dipesan</div>' + html;
+		if (state.existing.length && state.cart.length) html += '<div class="cart-sep">Tambahan baru</div>';
 		var disc = state.quote && state.quote.cart_discounts ? state.quote.cart_discounts : {};
 		state.cart.forEach(function (c, i) {
 			var ref = state.variants[c.variant_id];
 			var unit = lineUnitPrice(c);
 			var mods = c.modifiers.map(function (id) { var m = state.catalog.modifiers.find(function (x) { return x.id === id; }); return m ? '+ ' + esc(m.name) : ''; }).join(', ');
-			html += '<div class="cart-line"><div class="cl-main"><div class="cl-name">' + esc(variantLabel(ref)) + '</div>'
-				+ '<div class="cl-sub">' + rp(unit) + (mods ? ' · ' + mods : '') + (c.notes ? ' · <em>' + esc(c.notes) + '</em>' : '')
-				+ ' <a href="#" data-edit="' + i + '" class="ms-1">ubah</a></div>'
-				+ (disc[i] ? '<div class="cl-sub text-success">promo −' + rp(disc[i]) + '</div>' : '') + '</div>'
-				+ '<div class="cl-qty"><button class="btn btn-outline-secondary btn-sm" data-dec="' + i + '" aria-label="Kurangi">−</button><span class="px-1">' + c.qty
-				+ '</span><button class="btn btn-outline-secondary btn-sm" data-inc="' + i + '" aria-label="Tambah">+</button></div>'
+			html += '<div class="cart-line"><div class="cl-main"><a href="#" class="cl-name" data-edit="' + i + '" title="Ubah varian / tambahan / catatan">' + esc(variantLabel(ref)) + ' <i class="bi bi-pencil"></i></a>'
+				+ '<div class="cl-sub">' + rp(unit) + (mods ? ' · ' + mods : '') + (c.notes ? ' · <em>' + esc(c.notes) + '</em>' : '') + '</div>'
+				+ (disc[i] ? '<div class="cl-sub cl-promo">promo −' + rp(disc[i]) + '</div>' : '') + '</div>'
+				+ '<div class="cl-qty"><button type="button" class="cl-step" data-dec="' + i + '" aria-label="Kurangi"><i class="bi ' + (c.qty > 1 ? 'bi-dash' : 'bi-trash3') + '"></i></button><span class="cl-n">' + c.qty
+				+ '</span><button type="button" class="cl-step" data-inc="' + i + '" aria-label="Tambah"><i class="bi bi-plus"></i></button></div>'
 				+ '<div class="cl-total">' + rp(unit * c.qty) + '</div></div>';
 		});
-		$('cart-items').innerHTML = html || '<div class="text-muted text-center py-5"><i class="bi bi-cart3 fs-1 d-block"></i>Pilih menu atau scan barcode</div>';
+		$('cart-items').innerHTML = html || '<div class="pos-empty"><i class="bi bi-basket2"></i><div class="fw-semibold">Keranjang masih kosong</div><div class="small">Ketuk menu atau scan barcode untuk menambah.</div></div>';
+		cardCounts();
+		var n = state.cart.reduce(function (s, c) { return s + c.qty; }, 0) + state.existing.filter(function (i) { return i.kitchen_status !== 'void'; }).reduce(function (s, i) { return s + (+i.qty); }, 0);
+		if ($('cart-count')) { $('cart-count').textContent = n; $('cart-count').hidden = !n; }
+		if ($('fab-count')) $('fab-count').textContent = n + ' item';
+		if ($('pos-fab')) $('pos-fab').hidden = !n;
 		$('btn-kitchen').disabled = state.cart.length === 0;
 		if ($('btn-pay')) $('btn-pay').disabled = state.cart.length === 0 && state.existing.filter(function (i) { return i.kitchen_status !== 'void'; }).length === 0;
 		$('cart-title').textContent = state.order ? state.order.order_number : 'Pesanan baru';
 		$('cart-sub').textContent = state.order ? ({ dine_in: 'Dine-in', takeaway: 'Takeaway', delivery: 'Delivery' }[state.order.order_type]
 			+ (state.order.table_name ? ' · Meja ' + state.order.table_name : '') + (state.order.customer_name ? ' · ' + state.order.customer_name : '')) : (state.customer ? state.customer.name + (state.customer.is_member ? ' (member)' : '') : '');
-		$('codes').innerHTML = state.codes.map(function (c, i) { return '<span class="badge text-bg-primary me-1">' + esc(c) + ' <a href="#" class="text-white" data-uncode="' + i + '">×</a></span>'; }).join('');
+		$('codes').innerHTML = state.codes.map(function (c, i) { return '<span class="pos-code"><i class="bi bi-ticket-perforated"></i> ' + esc(c) + ' <a href="#" data-uncode="' + i + '" aria-label="Hapus kode">×</a></span>'; }).join('');
 		if (!state.cart.length && !state.existing.length) renderTotals(null);
 	}
 
@@ -205,7 +230,9 @@
 		$('t-service').textContent = rp(q ? q.service_charge : 0);
 		$('t-tax').textContent = rp(q ? q.tax : 0);
 		$('t-total').textContent = rp(q ? q.total : 0);
-		$('t-promos').innerHTML = q ? q.applied.map(function (a) { return '<tr class="text-success"><td>' + esc(a.name) + '</td><td class="text-end">−' + rp(a.discount) + '</td></tr>'; }).join('') : '';
+		if ($('btn-pay-amt')) $('btn-pay-amt').textContent = q && q.total ? rp(q.total) : '';
+		if ($('fab-total')) $('fab-total').textContent = rp(q ? q.total : 0);
+		$('t-promos').innerHTML = q ? q.applied.map(function (a) { return '<tr class="t-promo"><td><i class="bi bi-tag"></i> ' + esc(a.name) + '</td><td class="text-end">−' + rp(a.discount) + '</td></tr>'; }).join('') : '';
 		$('warnings').innerHTML = q && q.warnings ? q.warnings.map(esc).join('<br>') : '';
 	}
 
@@ -253,8 +280,8 @@
 		$('im-title').textContent = menu.name;
 		$('im-variants').innerHTML = menu.variants.length > 1 ? menu.variants.map(function (v) {
 			var out = v.avail === 'out' || v.avail === 'manual_out';
-			return '<button type="button" class="btn ' + (v.id === im.variant ? 'btn-primary' : 'btn-outline-primary') + '" data-variant="' + v.id + '"' + (out ? ' disabled' : '') + '>'
-				+ esc(v.name) + '<br><small>' + rp(effPrice(v, 1)) + (out ? ' · habis' : '') + '</small></button>';
+			return '<button type="button" class="im-opt' + (v.id === im.variant ? ' is-active' : '') + '" data-variant="' + v.id + '"' + (out ? ' disabled' : '') + '>'
+				+ '<span class="im-opt-name">' + esc(v.name) + '</span><span class="im-opt-price">' + rp(effPrice(v, 1)) + (out ? ' · habis' : '') + '</span></button>';
 		}).join('') : '';
 		$('im-qty').value = c ? c.qty : 1;
 		$('im-notes').value = c ? c.notes : '';
@@ -263,7 +290,7 @@
 		$('im-mods').innerHTML = mods.map(function (m) {
 			var on = c && c.modifiers.indexOf(m.id) > -1;
 			return '<input type="checkbox" class="btn-check" id="mod' + m.id + '" value="' + m.id + '"' + (on ? ' checked' : '') + '>'
-				+ '<label class="btn btn-sm btn-outline-secondary" for="mod' + m.id + '">' + esc(m.name) + (m.price ? ' +' + rp(m.price) : '') + '</label>';
+				+ '<label class="im-chip" for="mod' + m.id + '"><i class="bi bi-plus-circle"></i> ' + esc(m.name) + (m.price ? ' <b>+' + rp(m.price) + '</b>' : '') + '</label>';
 		}).join('');
 		$('im-save').textContent = editIndex > -1 ? 'Simpan' : 'Tambah';
 		updateItemPrice();
@@ -311,8 +338,9 @@
 	function renderPayMethods() {
 		var html = '';
 		Object.keys(state.catalog.payment_methods).forEach(function (k) {
+			var icon = { cash: 'cash-stack', debit: 'credit-card', credit: 'credit-card-2-front', ewallet: 'qr-code-scan' }[k] || 'wallet2';
 			html += '<input type="radio" class="btn-check" name="pm" id="pm-' + k + '" value="' + k + '"' + (k === state.method ? ' checked' : '') + '>'
-				+ '<label class="btn btn-outline-primary" for="pm-' + k + '">' + esc(state.catalog.payment_methods[k]) + '</label>';
+				+ '<label class="pm-tile" for="pm-' + k + '"><i class="bi bi-' + icon + '"></i><span>' + esc(state.catalog.payment_methods[k]) + '</span></label>';
 		});
 		$('pay-methods').innerHTML = html;
 		$('card-type').innerHTML = state.catalog.card_types.map(function (t) { return '<option>' + esc(t) + '</option>'; }).join('');
@@ -329,7 +357,7 @@
 			if (opts.indexOf(v) === -1 && v > total) opts.push(v);
 		});
 		$('cash-quick').innerHTML = opts.slice(0, 5).map(function (v, i) {
-			return '<button type="button" class="btn btn-sm btn-outline-secondary" data-cash="' + v + '">' + (i === 0 ? 'Uang pas' : rp(v)) + '</button>';
+			return '<button type="button" class="cash-chip' + (i === 0 ? ' is-exact' : '') + '" data-cash="' + v + '">' + (i === 0 ? 'Uang pas' : rp(v)) + '</button>';
 		}).join('');
 	}
 	function updateChange() {
@@ -442,7 +470,7 @@
 		$('im-variants').addEventListener('click', function (e) {
 			var b = e.target.closest('[data-variant]'); if (!b) return;
 			im.variant = +b.getAttribute('data-variant');
-			$('im-variants').querySelectorAll('[data-variant]').forEach(function (x) { x.className = 'btn ' + (+x.getAttribute('data-variant') === im.variant ? 'btn-primary' : 'btn-outline-primary'); });
+			$('im-variants').querySelectorAll('[data-variant]').forEach(function (x) { x.classList.toggle('is-active', +x.getAttribute('data-variant') === im.variant); });
 			updateItemPrice();
 		});
 		$('im-minus').addEventListener('click', function () { $('im-qty').value = Math.max(1, (parseInt($('im-qty').value, 10) || 1) - 1); updateItemPrice(); });
