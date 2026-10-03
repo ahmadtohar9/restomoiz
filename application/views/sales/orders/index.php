@@ -21,7 +21,7 @@ $st = array('open' => array('Belum bayar', 'warning'), 'paid' => array('Lunas', 
 <div class="d-flex flex-wrap gap-3 mb-3 align-items-center">
 	<span class="small text-muted"><?= count($rows) ?> pesanan · <?= (int) $sum['paid'] ?> lunas · total <strong><?= rupiah($sum['total']) ?></strong></span>
 	<a class="btn btn-sm btn-outline-warning ms-auto" href="<?= site_url('sales/orders?status=open') ?>"><i class="bi bi-hourglass-split"></i> Belum bayar</a>
-	<a class="btn btn-sm btn-primary" href="<?= site_url('pos') ?>"><i class="bi bi-cash-coin"></i> Buka POS</a>
+	<?php if (can_any(array('sales.process', 'sales.order'))): ?><a class="btn btn-sm btn-primary" href="<?= site_url('pos') ?>"><i class="bi bi-cash-coin"></i> Buka POS</a><?php endif; ?>
 </div>
 
 <div class="card">

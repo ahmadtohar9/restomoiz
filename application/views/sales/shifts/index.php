@@ -9,7 +9,7 @@ $st = array('open' => array('Berjalan', 'success'), 'pending_approval' => array(
 				<?php if ($current): ?>
 					<p class="mb-2">Shift <strong><?= e($current['shift_name'] ?: '#' . $current['id']) ?></strong> di <?= e($current['register_name']) ?> sejak <?= tgl($current['opened_at']) ?>, modal <?= rupiah($current['opening_balance']) ?>.</p>
 					<a class="btn btn-primary" href="<?= site_url('sales/shifts/show/' . $current['id']) ?>"><i class="bi bi-clipboard-data"></i> Ringkasan & tutup shift</a>
-					<a class="btn btn-outline-primary" href="<?= site_url('pos') ?>"><i class="bi bi-cash-coin"></i> POS</a>
+					<?php if (can_any(array('sales.process', 'sales.order'))): ?><a class="btn btn-outline-primary" href="<?= site_url('pos') ?>"><i class="bi bi-cash-coin"></i> POS</a><?php endif; ?>
 				<?php elseif (can('sales.shift')): ?>
 					<?= form_open('sales/shifts/open', array('class' => 'row g-2')) ?>
 						<div class="col-12"><label class="form-label" for="opening_balance">Modal awal (uang tunai di laci)</label>

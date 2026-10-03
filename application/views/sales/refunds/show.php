@@ -42,8 +42,8 @@ $s = Refund_service::$status[$r['status']];
 				<?= form_open('sales/refunds/action/' . $r['id'] . '/approve', array('class' => 'd-flex flex-column gap-2')) ?>
 					<input class="form-control" name="note" maxlength="255" placeholder="Catatan (wajib jika menolak)">
 					<div class="d-flex gap-2">
-						<?php if ($can_approve): ?><button class="btn btn-success flex-fill">Setujui</button><?php endif; ?>
-						<?php if ($can_reject): ?><button class="btn btn-outline-danger flex-fill" formaction="<?= site_url('sales/refunds/action/' . $r['id'] . '/reject') ?>">Tolak</button><?php endif; ?>
+						<?php if ($can_approve): ?><button class="btn btn-success flex-fill" data-confirm-click="Setujui refund ini? Uang akan dikembalikan ke pelanggan.">Setujui</button><?php endif; ?>
+						<?php if ($can_reject): ?><button class="btn btn-outline-danger flex-fill" formaction="<?= site_url('sales/refunds/action/' . $r['id'] . '/reject') ?>" data-confirm-click="Tolak refund ini?">Tolak</button><?php endif; ?>
 					</div>
 				<?= form_close() ?>
 			</div>

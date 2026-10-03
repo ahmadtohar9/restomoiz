@@ -1,4 +1,5 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
+$can_pos = can_any(array('sales.process', 'sales.order'));
 $areas = array();
 foreach ($tables as $t) { $areas[$t['area'] ?: 'Umum'][] = $t; }
 $edit = can('sales.edit_order');
@@ -40,7 +41,7 @@ $active_n = count(array_filter($tables, function ($t) { return (bool) $t['is_act
 						</div>
 						<?php if ($busy): ?>
 							<div class="tw-mt-3 tw-rounded-lg tw-bg-amber-50 tw-p-2 small">
-								<a class="fw-semibold" href="<?= site_url('pos?order=' . $t['order_id']) ?>"><?= e($t['order_number']) ?></a>
+								<a class="fw-semibold" href="<?= site_url($can_pos ? 'pos?order=' . $t['order_id'] : 'sales/orders/show/' . $t['order_id']) ?>"><?= e($t['order_number']) ?></a>
 								<div class="text-muted"><?= rupiah($t['subtotal']) ?> · <?= (int) floor((time() - strtotime($t['order_since'])) / 60) ?> mnt</div>
 								<?php if ($t['ready_items']): ?><span class="badge text-bg-info mt-1"><?= (int) $t['ready_items'] ?> siap antar</span><?php endif; ?>
 							</div>
@@ -48,7 +49,7 @@ $active_n = count(array_filter($tables, function ($t) { return (bool) $t['is_act
 					</div>
 					<?php if ($edit): ?>
 						<div class="card-footer d-flex gap-1">
-							<?php if ($busy): ?><a class="btn btn-sm btn-light flex-fill" href="<?= site_url('pos?order=' . $t['order_id']) ?>"><i class="bi bi-cash-coin"></i> Buka</a><?php endif; ?>
+							<?php if ($busy && $can_pos): ?><a class="btn btn-sm btn-light flex-fill" href="<?= site_url('pos?order=' . $t['order_id']) ?>"><i class="bi bi-cash-coin"></i> Buka</a><?php endif; ?>
 							<button type="button" class="btn btn-sm btn-light flex-fill" data-modal-template="#tpl-table" data-modal-title="Ubah meja <?= e($t['name']) ?>"
 								<?= $busy ? '' : 'data-delete-url="' . site_url('sales/tables/delete/' . $t['id']) . '"' ?>
 								data-fill="<?= e(json_encode(array('id' => (int) $t['id'], 'name' => $t['name'], 'area' => (string) $t['area'], 'capacity' => (int) $t['capacity'], 'sort_order' => (int) $t['sort_order'], 'is_active' => (int) $t['is_active']))) ?>"><i class="bi bi-pencil"></i> Ubah</button>

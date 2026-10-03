@@ -15,7 +15,7 @@ $can_cogs = can('menu.view_cogs');
 						<div class="small text-muted"><?= e(Pos_service::$order_types[$o['order_type']]) ?><?= $o['table_name'] ? ' · Meja ' . e($o['table_name']) : '' ?><?= $o['guest_count'] ? ' · ' . (int) $o['guest_count'] . ' tamu' : '' ?> · dibuat <?= e($o['created_by_name']) ?>, <?= tgl($o['created_at']) ?></div>
 					</div>
 					<div class="ms-auto d-flex flex-wrap gap-1">
-						<?php if ($o['status'] === 'open'): ?>
+						<?php if ($o['status'] === 'open' && can_any(array('sales.process', 'sales.order'))): ?>
 							<a class="btn btn-sm btn-primary" href="<?= site_url('pos?order=' . $o['id']) ?>"><i class="bi bi-cash-coin"></i> Buka di POS</a>
 						<?php endif; ?>
 						<a class="btn btn-sm btn-outline-secondary" href="<?= site_url('sales/orders/ticket/' . $o['id']) ?>" target="_blank"><i class="bi bi-fire"></i> Tiket dapur</a>

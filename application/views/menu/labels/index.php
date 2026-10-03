@@ -24,7 +24,7 @@
 					<td><input class="form-check-input lbl-box" type="checkbox" name="v[]" value="<?= $v['id'] ?>" aria-label="Pilih <?= e($m['name'] . ' ' . $v['name']) ?>"></td>
 					<td><a href="<?= site_url('menu/items/show/' . $m['id']) ?>"><?= e($m['name']) ?></a></td>
 					<td class="small"><?= e($v['name']) ?></td>
-					<td><code><?= e($v['barcode']) ?></code> <a class="small" href="<?= site_url('menu/labels/svg/' . $v['id']) ?>" target="_blank">svg</a></td>
+					<td><?php if ($v['barcode']): ?><code><?= e($v['barcode']) ?></code> <a class="small" href="<?= site_url('menu/labels/svg/' . $v['id']) ?>" target="_blank">svg</a><?php else: ?><span class="small text-muted">belum ada barcode</span><?php endif; ?></td>
 					<td class="text-end small"><?= $info[$v['id']]['price'] !== NULL ? rupiah($info[$v['id']]['price']) : '-' ?></td>
 				</tr>
 			<?php endforeach; endforeach; ?>

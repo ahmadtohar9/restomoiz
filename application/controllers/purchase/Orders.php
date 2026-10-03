@@ -180,7 +180,11 @@ class Orders extends MY_Controller {
 			'cancel'  => in_array($s, array('draft', 'submitted', 'approved'), TRUE) && can_any(array('purchase.create', 'purchase.approve')),
 			'close'   => in_array($s, array('partial', 'received'), TRUE) && can_any(array('purchase.receive', 'purchase.create')),
 			'receive' => in_array($s, array('approved', 'partial'), TRUE) && can('purchase.receive'),
-			'invoice' => $has_gr && can('purchase.invoice'),
+			// Catat invoice hanya selama masih ada nilai barang diterima yang belum ditagih.
+			'invoice' => $has_gr && can('purchase.invoice') && call_user_func(function () use ($po) {
+				$a = $this->purchase->po_amounts($po['id']);
+				return $a['gr_amount'] - $a['invoiced'] > 0.5;
+			}),
 			'print'   => ! in_array($s, array('draft', 'submitted', 'cancelled'), TRUE),
 			'delete'  => $s === 'draft' && ! $po['submitted_at'] && can('purchase.create'),
 		);

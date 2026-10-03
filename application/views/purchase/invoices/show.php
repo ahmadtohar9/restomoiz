@@ -56,7 +56,7 @@ $expected = $gr_amount - $other_inv;
 		<?php if ($match_now === 'mismatch'): ?><p class="small text-danger mb-2">Nilai tidak cocok dengan barang diterima. Untuk menyetujui, isi alasannya (mis. ongkos kirim, koreksi harga yang sudah dikonfirmasi).</p><?php endif; ?>
 		<?= form_open('purchase/invoices/review/' . $inv['id'], array('class' => 'd-flex flex-wrap gap-2')) ?>
 			<input class="form-control form-control-sm" style="max-width: 420px" name="note" maxlength="255" placeholder="Catatan / alasan">
-			<button class="btn btn-sm btn-success" name="action" value="approve"><i class="bi bi-check2"></i> Setujui</button>
+			<button class="btn btn-sm btn-success" name="action" value="approve" data-confirm-click="Setujui invoice <?= e($inv['invoice_number']) ?> senilai <?= rupiah($inv['amount']) ?>? Invoice masuk daftar hutang yang siap dibayar."><i class="bi bi-check2"></i> Setujui</button>
 			<?php if ($inv['status'] === 'pending'): ?><button class="btn btn-sm btn-outline-secondary" name="action" value="hold"><i class="bi bi-pause"></i> Tahan</button><?php endif; ?>
 			<button class="btn btn-sm btn-outline-danger" name="action" value="reject" data-confirm-click="Tolak invoice ini?"><i class="bi bi-x"></i> Tolak</button>
 		<?= form_close() ?>

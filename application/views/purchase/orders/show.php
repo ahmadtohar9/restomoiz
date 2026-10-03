@@ -49,9 +49,9 @@ $level_text = array(0 => 'otomatis', 1 => 'Manajer', 2 => 'Manajer + Owner');
 		<?php if ($po['approved1_by']): ?><p class="small text-muted mb-2">Level 1 disetujui <?= e($po['approved1_name']) ?> pada <?= tgl($po['approved1_at']) ?>.</p><?php endif; ?>
 		<?= form_open('purchase/orders/action/' . $po['id'] . '/approve', array('class' => 'd-flex flex-wrap gap-2', 'id' => 'approval-form')) ?>
 			<input class="form-control form-control-sm" style="max-width: 420px" name="note" maxlength="255" placeholder="Catatan (wajib jika menolak)">
-			<?php if ($actions['approve']): ?><button class="btn btn-sm btn-success"><i class="bi bi-check2"></i> Setujui</button><?php endif; ?>
+			<?php if ($actions['approve']): ?><button class="btn btn-sm btn-success" data-confirm-click="Setujui PO <?= e($po['po_number']) ?> senilai <?= rupiah($po['total_amount']) ?>?"><i class="bi bi-check2"></i> Setujui</button><?php endif; ?>
 			<?php if ($actions['reject']): ?>
-				<button class="btn btn-sm btn-outline-danger" formaction="<?= site_url('purchase/orders/action/' . $po['id'] . '/reject') ?>"><i class="bi bi-x"></i> Tolak</button>
+				<button class="btn btn-sm btn-outline-danger" formaction="<?= site_url('purchase/orders/action/' . $po['id'] . '/reject') ?>" data-confirm-click="Tolak PO <?= e($po['po_number']) ?> dan kembalikan ke draft?"><i class="bi bi-x"></i> Tolak</button>
 			<?php endif; ?>
 		<?= form_close() ?>
 	</div>

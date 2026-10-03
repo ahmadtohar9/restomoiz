@@ -33,7 +33,7 @@ $super = $this->rbac->is_super();
 								<input type="hidden" name="back" value="<?= e($back) ?>">
 								<input class="form-control form-control-sm" style="max-width: 150px" name="reason" placeholder="alasan tolak">
 								<button class="btn btn-sm btn-success" name="action" value="verify" data-confirm-click="Verifikasi pembayaran <?= e($p['payment_number']) ?>? Pastikan dana sudah keluar sesuai bukti."><i class="bi bi-check2"></i></button>
-								<button class="btn btn-sm btn-outline-danger" name="action" value="reject"><i class="bi bi-x"></i></button>
+								<button class="btn btn-sm btn-outline-danger" name="action" value="reject" title="Tolak pembayaran" data-confirm-click="Tolak pembayaran <?= e($p['payment_number']) ?>?"><i class="bi bi-x"></i></button>
 							<?= form_close() ?>
 						<?php else: ?>
 							<span class="small text-muted">diverifikasi orang lain</span>
