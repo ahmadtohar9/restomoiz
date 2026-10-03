@@ -15,6 +15,16 @@ $CI =& get_instance();
 </head>
 <?php $ini = strtoupper(implode('', array_map(function ($w) { return mb_substr($w, 0, 1); }, array_slice(preg_split('/\s+/', trim($current_user['name'])), 0, 2)))); ?>
 <body class="pos-body">
+<script>
+(function () {
+	// Tinggi layar yang terlihat (tanpa address bar / navigasi browser tablet).
+	function fit() { document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px'); document.body.classList.add('has-app-h'); }
+	fit();
+	window.addEventListener('resize', fit);
+	window.addEventListener('orientationchange', function () { setTimeout(fit, 250); });
+	if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+})();
+</script>
 <header class="pos-top">
 	<a class="pos-brand" href="<?= site_url('dashboard') ?>" title="Kembali ke dashboard">
 		<span class="brand-logo tw-h-9 tw-w-9 tw-rounded-xl tw-text-base"><i class="bi bi-shop"></i></span>
@@ -88,6 +98,7 @@ $CI =& get_instance();
 		</div>
 		<div class="pos-cart-items" id="cart-items"></div>
 		<div class="pos-cart-foot">
+			<button type="button" class="pos-extra-toggle" id="extra-toggle" aria-expanded="false"><i class="bi bi-ticket-perforated"></i> Kode promo &amp; catatan <i class="bi bi-chevron-down"></i></button>
 			<div class="pos-extra">
 				<div class="input-group input-group-sm">
 					<span class="input-group-text"><i class="bi bi-ticket-perforated"></i></span>
@@ -126,7 +137,7 @@ $CI =& get_instance();
 </div>
 
 <!-- Pilih varian / tambahan / catatan -->
-<div class="modal fade pos-modal" id="itemModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+<div class="modal fade pos-modal" id="itemModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
 	<div class="modal-header"><h5 class="modal-title" id="im-title"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
 	<div class="modal-body">
 		<div id="im-variants" class="im-opts mb-3"></div>
@@ -151,7 +162,7 @@ $CI =& get_instance();
 </div></div></div>
 
 <!-- Pembayaran -->
-<div class="modal fade pos-modal" id="payModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+<div class="modal fade pos-modal" id="payModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
 	<div class="modal-header"><h5 class="modal-title">Pembayaran</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
 	<div class="modal-body">
 		<div class="pay-total-box"><div class="small">Total tagihan</div><div class="pay-total" id="pay-total">Rp 0</div><div class="small" id="pay-note"></div></div>

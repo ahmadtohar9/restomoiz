@@ -433,6 +433,14 @@
 		if ($('fab-pay')) $('fab-pay').addEventListener('click', function () { if ($('btn-pay') && !$('btn-pay').disabled) $('btn-pay').click(); });
 		if ($('fab-kitchen')) $('fab-kitchen').addEventListener('click', function () { if (!$('btn-kitchen').disabled) $('btn-kitchen').click(); });
 
+		// Promo & catatan dilipat di layar pendek; buka otomatis bila sudah terisi.
+		var foot = document.querySelector('.pos-cart-foot');
+		if ($('extra-toggle')) $('extra-toggle').addEventListener('click', function () {
+			var open = foot.classList.toggle('show-extra');
+			this.setAttribute('aria-expanded', open ? 'true' : 'false');
+			if (open) $('promo-code').focus();
+		});
+
 		$('categories').addEventListener('click', function (e) {
 			var b = e.target.closest('[data-cat]'); if (!b) return;
 			state.cat = +b.getAttribute('data-cat'); renderCats(); renderGrid();
