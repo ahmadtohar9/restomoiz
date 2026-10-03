@@ -109,7 +109,7 @@ class Receipts extends MY_Controller {
 						return $svc->receive($po['id'], $header, $lines);
 					});
 					$this->audit->log('gr_create', array('table_name' => 'goods_receipts', 'record_id' => $gr_number, 'detail' => array('po' => $po['po_number'], 'lines' => count($lines))));
-					flash('success', "Penerimaan $gr_number tersimpan, stok sudah bertambah.");
+					flash('success', "Penerimaan $gr_number tersimpan, stok sudah bertambah. Langkah berikutnya: catat invoice supplier (menu Invoice Supplier) agar hutang & jatuh tempo terhitung.");
 					redirect('purchase/orders/show/' . $po['id'] . '#gr-' . $gr_id);
 				}
 				catch (Exception $e)

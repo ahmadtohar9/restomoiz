@@ -51,6 +51,7 @@ if (isset($purchase))
 		array('PO menunggu approval Owner', 'approval_2', 'purchase/orders?status=submitted', 'purchase.approve_owner', 'clipboard-check', 'warning'),
 		array('PO menunggu barang datang', 'to_receive', 'purchase/receipts', 'purchase.receive', 'truck', 'primary'),
 		array('PO terlambat dari tanggal kirim', 'late', 'purchase/receipts', 'purchase.view', 'truck', 'danger'),
+		array('Barang diterima, belum ada invoice', 'uninvoiced', 'purchase/invoices', 'purchase.invoice', 'hourglass-split', 'warning'),
 		array('Invoice supplier perlu direview', 'invoices', 'purchase/invoices?status=pending', 'purchase.invoice', 'receipt', 'warning'),
 		array('Pembayaran supplier perlu diverifikasi', 'payments', 'purchase/payments?status=pending', 'purchase.payment', 'credit-card', 'warning'),
 		array('Invoice lewat jatuh tempo', 'overdue', 'purchase/invoices?payment=outstanding', 'purchase.view', 'calendar-x', 'danger'),

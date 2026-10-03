@@ -27,6 +27,7 @@ class Invoices extends MY_Controller {
 		$this->render('purchase/invoices/index', array(
 			'title'     => 'Invoice Supplier',
 			'rows'      => $this->Purchase_model->invoices($f, 300),
+			'uninvoiced'=> can('purchase.invoice') ? $this->Purchase_model->uninvoiced_orders() : array(),
 			'filters'   => $f,
 			'suppliers' => $this->Supplier_model->options(),
 		));

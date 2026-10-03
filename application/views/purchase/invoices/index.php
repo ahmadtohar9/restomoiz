@@ -1,6 +1,34 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 $pay = array('unpaid' => array('Belum dibayar', 'secondary'), 'partial' => array('Sebagian', 'info'), 'paid' => array('Lunas', 'success'));
 ?>
+<?php if ( ! empty($uninvoiced)): ?>
+<div class="card mb-3 border-warning">
+	<div class="card-header d-flex flex-wrap align-items-center gap-2 bg-warning-subtle">
+		<span><i class="bi bi-hourglass-split text-warning-emphasis"></i> Barang sudah diterima, belum ada invoice</span>
+		<span class="badge rounded-pill text-bg-warning"><?= count($uninvoiced) ?></span>
+		<span class="small fw-normal text-muted ms-auto">Hutang & jatuh tempo (mis. NET 30) baru dihitung setelah invoice supplier dicatat.</span>
+	</div>
+	<div class="table-responsive">
+		<table class="table table-sm align-middle mb-0" data-dt="false">
+			<thead><tr><th>PO</th><th>Supplier</th><th>Termin</th><th>Barang diterima</th><th class="text-end">Nilai diterima</th><th class="text-end">Sudah ditagih</th><th class="text-end">Belum ditagih</th><th></th></tr></thead>
+			<tbody>
+			<?php foreach ($uninvoiced as $u): ?>
+				<tr>
+					<td><a href="<?= site_url('purchase/orders/show/' . $u['id']) ?>"><?= e($u['po_number']) ?></a></td>
+					<td><?= e($u['supplier_name']) ?></td>
+					<td><?= e(isset(Supplier_model::$payment_terms[$u['payment_terms']]) ? Supplier_model::$payment_terms[$u['payment_terms']] : $u['payment_terms']) ?></td>
+					<td class="small"><?= tgl($u['last_receipt'], FALSE) ?></td>
+					<td class="text-end"><?= rupiah($u['gr_amount']) ?></td>
+					<td class="text-end text-muted"><?= (float) $u['invoiced'] > 0 ? rupiah($u['invoiced']) : '-' ?></td>
+					<td class="text-end fw-semibold"><?= rupiah($u['uninvoiced']) ?></td>
+					<td class="text-end"><a class="btn btn-sm btn-primary" href="<?= site_url('purchase/invoices/create/' . $u['id']) ?>"><i class="bi bi-receipt"></i> Catat invoice</a></td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+	</div>
+</div>
+<?php endif; ?>
 <form class="card mb-3" method="get" action="<?= site_url('purchase/invoices') ?>">
 	<div class="card-body row g-2 align-items-end">
 		<div class="col-6 col-md-3">

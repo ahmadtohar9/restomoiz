@@ -205,6 +205,26 @@ class Purchase_model extends CI_Model {
 
 	// ---- Ringkasan untuk dashboard ----
 
+	/**
+	 * PO yang barangnya sudah diterima tetapi belum ditagih (belum ada invoice
+	 * supplier, atau total invoice < nilai barang diterima). Hutang & jatuh tempo
+	 * baru terhitung setelah invoice dicatat.
+	 */
+	public function uninvoiced_orders($limit = 100)
+	{
+		return $this->db->query("SELECT po.id, po.po_number, po.po_date, po.payment_terms, po.status, s.name AS supplier_name,
+				gr.gr_amount, gr.last_receipt, COALESCE(inv.invoiced, 0) AS invoiced,
+				gr.gr_amount - COALESCE(inv.invoiced, 0) AS uninvoiced
+			 FROM purchase_orders po
+			 JOIN suppliers s ON s.id = po.supplier_id
+			 JOIN (SELECT po_id, SUM(amount) AS gr_amount, MAX(received_date) AS last_receipt FROM goods_receipts GROUP BY po_id) gr ON gr.po_id = po.id
+			 LEFT JOIN (SELECT po_id, SUM(amount) AS invoiced FROM supplier_invoices WHERE status != 'rejected' GROUP BY po_id) inv ON inv.po_id = po.id
+			 WHERE po.status IN ('partial', 'received', 'closed')
+			   AND gr.gr_amount - COALESCE(inv.invoiced, 0) > 0.5
+			 ORDER BY gr.last_receipt ASC, po.id ASC
+			 LIMIT " . (int) $limit)->result_array();
+	}
+
 	public function pending_counts()
 	{
 		$q = function ($sql) { return (int) $this->db->query($sql)->row()->n; };
@@ -214,6 +234,7 @@ class Purchase_model extends CI_Model {
 			'to_receive'   => $q("SELECT COUNT(*) AS n FROM purchase_orders WHERE status IN ('approved','partial')"),
 			'late'         => $q("SELECT COUNT(*) AS n FROM purchase_orders WHERE status IN ('approved','partial') AND expected_delivery < CURDATE()"),
 			'invoices'     => $q("SELECT COUNT(*) AS n FROM supplier_invoices WHERE status IN ('pending','on_hold')"),
+			'uninvoiced'   => count($this->uninvoiced_orders(500)),
 			'payments'     => $q("SELECT COUNT(*) AS n FROM supplier_payments WHERE status = 'pending'"),
 			'overdue'      => $q("SELECT COUNT(*) AS n FROM supplier_invoices WHERE status = 'approved' AND payment_status != 'paid' AND due_date < CURDATE()"),
 			'outstanding'  => (float) $this->db->query("SELECT COALESCE(SUM(amount - paid_amount), 0) AS v FROM supplier_invoices WHERE status = 'approved' AND payment_status != 'paid'")->row()->v,

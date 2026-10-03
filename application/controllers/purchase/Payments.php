@@ -27,7 +27,16 @@ class Payments extends MY_Controller {
 			'rows'    => $this->Purchase_model->payments($f, 300),
 			'filters' => $f,
 			'aging'   => $this->Purchase_model->ap_aging(),
+			// Invoice disetujui yang belum lunas (urut jatuh tempo) + invoice yang masih menunggu review.
+			'to_pay'  => can('purchase.payment') ? $this->_by_due($this->Purchase_model->invoices(array('payment' => 'outstanding'), 200)) : array(),
+			'to_review' => count($this->Purchase_model->invoices(array('status' => 'pending'), 500)),
 		));
+	}
+
+	private function _by_due(array $rows)
+	{
+		usort($rows, function ($a, $b) { return strcmp((string) $a['due_date'], (string) $b['due_date']); });
+		return $rows;
 	}
 
 	public function create($invoice_id = NULL)
