@@ -11,6 +11,7 @@ $CI =& get_instance();
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/app.css') ?>">
+	<link rel="stylesheet" href="<?= asset_v('assets/css/buttons.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/pos.css') ?>">
 </head>
 <?php $ini = strtoupper(implode('', array_map(function ($w) { return mb_substr($w, 0, 1); }, array_slice(preg_split('/\s+/', trim($current_user['name'])), 0, 2)))); ?>

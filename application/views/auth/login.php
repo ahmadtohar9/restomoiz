@@ -9,6 +9,7 @@
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/app.css') ?>">
+	<link rel="stylesheet" href="<?= asset_v('assets/css/buttons.css') ?>">
 </head>
 <body class="login-page">
 	<div class="tw-w-full tw-max-w-[420px]">

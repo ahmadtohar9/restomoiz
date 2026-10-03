@@ -111,6 +111,7 @@ $role_label = implode(', ', $current_user['role_names']) ?: 'Tanpa role';
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/vendor/datatables/datatables.min.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/app.css') ?>">
+	<link rel="stylesheet" href="<?= asset_v('assets/css/buttons.css') ?>">
 </head>
 <body data-dt-auto="<?= $dt_auto ? 1 : 0 ?>">
 <div class="app">

@@ -1,0 +1,131 @@
+/*
+ * ================================================================
+ *  STANDAR TOMBOL RESTO MOIZ  (satu-satunya sumber gaya tombol)
+ * ================================================================
+ *  Semua tombol bertulisan PUTIH di atas warna solid. Tidak ada tombol hijau
+ *  dan tidak ada tombol bertulisan hitam. Hanya 5 jenis:
+ *
+ *    Simpan      .btn-save      indigo   Simpan, Tambah, Bayar, Setujui, Proses
+ *    Edit        .btn-edit      biru     Ubah / Edit
+ *    Hapus       .btn-delete    merah    Hapus, Tolak, Batalkan item
+ *    Lainnya     .btn-neutral   abu      Batal, Filter, Cetak, CSV, Kembali
+ *    Peringatan  .btn-warn      oranye   Buka shift, Belum bayar, Saran reorder
+ *
+ *  Untuk tombol baru cukup pakai: class="btn btn-save" (atau btn-edit, dst).
+ *  Kelas Bootstrap lama otomatis mengikuti standar ini:
+ *    btn-primary / btn-success / btn-info (+ outline)  -> Simpan
+ *    btn-danger (+ outline)                            -> Hapus
+ *    btn-secondary / btn-light / btn-outline-secondary -> Lainnya
+ *    btn-warning (+ outline)                           -> Peringatan
+ *  Tombol berikon pensil otomatis -> Edit, berikon tempat sampah -> Hapus.
+ *  Warna diatur di variabel di bawah; ubah di sini saja bila ingin ganti warna.
+ */
+:root {
+	--btn-save: #4f46e5;      --btn-save-hover: #4338ca;      --btn-save-active: #3730a3;
+	--btn-edit: #0369a1;      --btn-edit-hover: #075985;      --btn-edit-active: #0c4a6e;
+	--btn-delete: #dc2626;    --btn-delete-hover: #b91c1c;    --btn-delete-active: #991b1b;
+	--btn-neutral: #64748b;   --btn-neutral-hover: #475569;   --btn-neutral-active: #334155;
+	--btn-warn: #c2410c;      --btn-warn-hover: #9a3412;      --btn-warn-active: #7c2d12;
+	--btn-text: #fff;
+	--btn-radius: .6rem;
+}
+
+/* ---------- Dasar semua tombol ---------- */
+.btn {
+	--bs-btn-font-weight: 600;
+	border-radius: var(--btn-radius);
+	transition: background-color .15s, border-color .15s, box-shadow .15s, transform .08s, opacity .15s;
+}
+.btn-sm { border-radius: .5rem; }
+.btn-lg { border-radius: .8rem; }
+.btn:active:not(:disabled):not(.disabled) { transform: scale(.97); }
+.btn:focus-visible { box-shadow: 0 0 0 .2rem rgba(79, 70, 229, .3) !important; }
+.btn:disabled, .btn.disabled { opacity: .5; }
+
+/* ---------- Pola warna (dipakai semua jenis) ---------- */
+.btn-save, .btn-primary, .btn-success, .btn-info, .btn-outline-primary, .btn-outline-success, .btn-outline-info {
+	--c: var(--btn-save); --c-hover: var(--btn-save-hover); --c-active: var(--btn-save-active);
+}
+.btn-edit, .btn-dark, .btn-outline-dark {
+	--c: var(--btn-edit); --c-hover: var(--btn-edit-hover); --c-active: var(--btn-edit-active);
+}
+.btn-delete, .btn-danger, .btn-outline-danger {
+	--c: var(--btn-delete); --c-hover: var(--btn-delete-hover); --c-active: var(--btn-delete-active);
+}
+.btn-neutral, .btn-secondary, .btn-light, .btn-outline-secondary, .btn-outline-light, .btn-icon {
+	--c: var(--btn-neutral); --c-hover: var(--btn-neutral-hover); --c-active: var(--btn-neutral-active);
+}
+.btn-warn, .btn-warning, .btn-outline-warning {
+	--c: var(--btn-warn); --c-hover: var(--btn-warn-hover); --c-active: var(--btn-warn-active);
+}
+/* Ikon pensil = Edit, ikon tempat sampah = Hapus (apa pun kelas lamanya) */
+.btn:has(> .bi-pencil, > .bi-pencil-square, > .bi-pencil-fill):not(.btn-link) {
+	--c: var(--btn-edit); --c-hover: var(--btn-edit-hover); --c-active: var(--btn-edit-active);
+}
+.btn:has(> .bi-trash, > .bi-trash3, > .bi-trash-fill, > .bi-trash3-fill):not(.btn-link) {
+	--c: var(--btn-delete); --c-hover: var(--btn-delete-hover); --c-active: var(--btn-delete-active);
+}
+
+.btn-save, .btn-edit, .btn-delete, .btn-neutral, .btn-warn,
+.btn-primary, .btn-success, .btn-info, .btn-danger, .btn-warning, .btn-secondary, .btn-light, .btn-dark,
+.btn-outline-primary, .btn-outline-success, .btn-outline-info, .btn-outline-danger, .btn-outline-warning,
+.btn-outline-secondary, .btn-outline-light, .btn-outline-dark, .btn-icon,
+.btn:has(> .bi-pencil, > .bi-pencil-square, > .bi-pencil-fill, > .bi-trash, > .bi-trash3, > .bi-trash-fill, > .bi-trash3-fill):not(.btn-link) {
+	--bs-btn-color: var(--btn-text);
+	--bs-btn-bg: var(--c);
+	--bs-btn-border-color: var(--c);
+	--bs-btn-hover-color: var(--btn-text);
+	--bs-btn-hover-bg: var(--c-hover);
+	--bs-btn-hover-border-color: var(--c-hover);
+	--bs-btn-active-color: var(--btn-text);
+	--bs-btn-active-bg: var(--c-active);
+	--bs-btn-active-border-color: var(--c-active);
+	--bs-btn-disabled-color: var(--btn-text);
+	--bs-btn-disabled-bg: var(--c);
+	--bs-btn-disabled-border-color: var(--c);
+	color: var(--btn-text);
+	background-color: var(--c);
+	border-color: var(--c);
+	background-image: none;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, .12);
+}
+.btn-save:hover, .btn-edit:hover, .btn-delete:hover, .btn-neutral:hover, .btn-warn:hover,
+.btn-primary:hover, .btn-success:hover, .btn-info:hover, .btn-danger:hover, .btn-warning:hover, .btn-secondary:hover, .btn-light:hover, .btn-dark:hover,
+.btn-outline-primary:hover, .btn-outline-success:hover, .btn-outline-info:hover, .btn-outline-danger:hover, .btn-outline-warning:hover,
+.btn-outline-secondary:hover, .btn-outline-light:hover, .btn-outline-dark:hover, .btn-icon:hover,
+.btn:has(> .bi-pencil, > .bi-pencil-square, > .bi-pencil-fill, > .bi-trash, > .bi-trash3, > .bi-trash-fill, > .bi-trash3-fill):not(.btn-link):hover {
+	color: var(--btn-text); background-color: var(--c-hover); border-color: var(--c-hover);
+}
+/* Ikon & utilitas warna teks (mis. text-danger) di tombol tetap putih */
+.btn .bi { color: inherit; }
+.btn:not(.btn-link):not(.btn-close)[class*="text-"] { color: var(--btn-text) !important; }
+/* Tombol ikon kecil di baris tabel (catatan aktif = Edit) */
+.btn-icon.is-on { --c: var(--btn-edit); --c-hover: var(--btn-edit-hover); --c-active: var(--btn-edit-active); }
+
+/* Tombol tutup (X) di modal/alert & tombol tautan tidak diubah */
+.btn-link { --bs-btn-color: var(--btn-save); --bs-btn-hover-color: var(--btn-save-hover); font-weight: 500; text-decoration: none; box-shadow: none; }
+
+/* ---------- Grup tombol pilihan (periode laporan, filter dapur, tipe pesanan) ---------- */
+.btn-group > .btn, .btn-group > .btn-check + .btn {
+	--c: var(--btn-neutral); --c-hover: var(--btn-neutral-hover); --c-active: var(--btn-save);
+	box-shadow: none;
+}
+.btn-group > .btn.active, .btn-group > .btn-check:checked + .btn, .btn-group > .btn-primary {
+	--c: var(--btn-save); --c-hover: var(--btn-save-hover);
+	background-color: var(--btn-save); border-color: var(--btn-save); color: var(--btn-text); z-index: 2;
+}
+
+/* ---------- POS: ikut standar ---------- */
+.btn-pay { background: var(--btn-save) !important; color: var(--btn-text) !important; box-shadow: 0 8px 20px -6px rgba(79, 70, 229, .55) !important; }
+.btn-pay:hover, .btn-pay:focus { background: var(--btn-save-hover) !important; filter: none !important; }
+.btn-kitchen { background: var(--btn-edit) !important; border-color: var(--btn-edit) !important; color: var(--btn-text) !important; }
+.btn-kitchen:hover { background: var(--btn-edit-hover) !important; border-color: var(--btn-edit-hover) !important; color: var(--btn-text) !important; }
+.pos-fab-act { background: var(--btn-save) !important; color: var(--btn-text) !important; }
+.pos-fab-act.is-kitchen { background: var(--btn-edit) !important; }
+.pos-pill.is-warn { background: var(--btn-warn) !important; color: var(--btn-text) !important; }
+
+/* ---------- Layar sentuh: tombol lebih mudah diketuk ---------- */
+@media (pointer: coarse) {
+	.btn { min-height: 2.6rem; }
+	.btn-sm { min-height: 2.25rem; padding-left: .8rem; padding-right: .8rem; }
+}
