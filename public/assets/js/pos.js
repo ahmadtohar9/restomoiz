@@ -218,6 +218,9 @@
 		if ($('pos-fab')) $('pos-fab').hidden = !n;
 		$('btn-kitchen').disabled = state.cart.length === 0;
 		if ($('btn-pay')) $('btn-pay').disabled = state.cart.length === 0 && state.existing.filter(function (i) { return i.kitchen_status !== 'void'; }).length === 0;
+		// Tombol aksi di bar melayang (HP) mengikuti status tombol aslinya.
+		if ($('fab-pay')) $('fab-pay').disabled = !$('btn-pay') || $('btn-pay').disabled;
+		if ($('fab-kitchen')) $('fab-kitchen').disabled = $('btn-kitchen').disabled;
 		$('cart-title').textContent = state.order ? state.order.order_number : 'Pesanan baru';
 		$('cart-sub').textContent = state.order ? ({ dine_in: 'Dine-in', takeaway: 'Takeaway', delivery: 'Delivery' }[state.order.order_type]
 			+ (state.order.table_name ? ' · Meja ' + state.order.table_name : '') + (state.order.customer_name ? ' · ' + state.order.customer_name : '')) : (state.customer ? state.customer.name + (state.customer.is_member ? ' (member)' : '') : '');
@@ -425,6 +428,10 @@
 			syncTypeFields();
 			if (P.orderId) loadOrder(P.orderId); else renderCart();
 		});
+
+		// Bar melayang HP: Bayar / Kirim ke Dapur langsung tanpa harus scroll ke bawah katalog.
+		if ($('fab-pay')) $('fab-pay').addEventListener('click', function () { if ($('btn-pay') && !$('btn-pay').disabled) $('btn-pay').click(); });
+		if ($('fab-kitchen')) $('fab-kitchen').addEventListener('click', function () { if (!$('btn-kitchen').disabled) $('btn-kitchen').click(); });
 
 		$('categories').addEventListener('click', function (e) {
 			var b = e.target.closest('[data-cat]'); if (!b) return;

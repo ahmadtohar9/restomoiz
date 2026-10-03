@@ -116,7 +116,14 @@ $CI =& get_instance();
 	</aside>
 </div>
 
-<a href="#pos-cart" class="pos-fab" id="pos-fab"><i class="bi bi-basket2"></i> <span id="fab-count">0 item</span><b id="fab-total">Rp 0</b><i class="bi bi-chevron-up"></i></a>
+<div class="pos-fab" id="pos-fab" hidden>
+	<a href="#pos-cart" class="pos-fab-info" title="Lihat keranjang"><i class="bi bi-basket2"></i> <span id="fab-count">0 item</span><b id="fab-total">Rp 0</b><i class="bi bi-chevron-up"></i></a>
+	<?php if ($can_pay): ?>
+		<button type="button" class="pos-fab-act" id="fab-pay" disabled><i class="bi bi-wallet2"></i> Bayar</button>
+	<?php else: ?>
+		<button type="button" class="pos-fab-act is-kitchen" id="fab-kitchen" disabled><i class="bi bi-send"></i> Dapur</button>
+	<?php endif; ?>
+</div>
 
 <!-- Pilih varian / tambahan / catatan -->
 <div class="modal fade pos-modal" id="itemModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
