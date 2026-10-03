@@ -22,7 +22,7 @@ $avg = $rows ? array_sum(array_column($rows, 'margin')) / count($rows) : 0;
 					<td><a href="<?= site_url('menu/items/show/' . $r['menu']['id'] . '#v' . $r['variant']['id']) ?>"><?= e($r['menu']['name']) ?></a><?= $r['variant']['name'] !== 'Reguler' ? ' <span class="text-muted small">' . e($r['variant']['name']) . '</span>' : '' ?>
 						<?= $r['missing_cost'] ? ' <i class="bi bi-exclamation-circle text-warning" title="Ada bahan tanpa harga"></i>' : '' ?></td>
 					<td class="text-end"><?= rupiah($r['price']) ?></td>
-					<td class="text-end"><?= rupiah($r['cogs']) ?></td>
+					<td class="text-end"><?= rupiah($r['cogs']) ?><?= $r['cogs_source'] === 'manual' ? ' <span class="badge text-bg-warning" title="HPP diisi manual">M</span>' : '' ?></td>
 					<td class="text-end"><?= rupiah($r['profit']) ?></td>
 					<td class="text-end fw-medium <?= $is_low ? 'text-danger' : 'text-success' ?>"><?= number_format($r['margin'], 1, ',', '.') ?>%</td>
 					<td class="text-end small <?= $r['cogs_change'] > 5 ? 'text-danger' : '' ?>"><?= $r['cogs_change'] === NULL ? '-' : ($r['cogs_change'] > 0 ? '+' : '') . number_format($r['cogs_change'], 1, ',', '.') . '%' ?></td>

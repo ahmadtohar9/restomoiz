@@ -87,7 +87,17 @@
 				if (u.unit === wanted) o.selected = true;
 				unitSel.appendChild(o);
 			});
+			// Form resep: boleh menambah satuan baru (mis. buah, sdm) dengan konversi ke satuan standar.
+			if (doc.hasAttribute('data-unit-add')) {
+				var add = document.createElement('option');
+				add.value = '__new__';
+				add.textContent = '+ Satuan lain…';
+				add.setAttribute('data-factor', '1');
+				unitSel.appendChild(add);
+			}
 		};
+		doc.fillUnits = fillUnits;
+		doc.refreshLine = function (row) { refresh(row); };
 
 		var factor = function (row) {
 			var o = row.querySelector('.line-unit').selectedOptions[0];

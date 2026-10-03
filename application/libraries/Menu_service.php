@@ -71,7 +71,8 @@ class Menu_service {
 		foreach ($variant_ids as $id)
 		{
 			$out[$id] = array('price' => NULL, 'member_price' => NULL, 'bulk_min_qty' => NULL, 'bulk_price' => NULL,
-				'next_price' => NULL, 'next_from' => NULL, 'cogs' => 0.0, 'margin_pct' => NULL, 'portions' => NULL, 'missing_cost' => 0, 'recipe_lines' => 0);
+				'next_price' => NULL, 'next_from' => NULL, 'cogs' => 0.0, 'margin_pct' => NULL, 'portions' => NULL, 'missing_cost' => 0, 'recipe_lines' => 0,
+				'cogs_recipe' => 0.0, 'cogs_manual' => NULL, 'cogs_source' => NULL, 'has_cogs' => FALSE);
 		}
 
 		// Harga berlaku: effective_from terbaru yang <= $at.
@@ -123,9 +124,25 @@ class Menu_service {
 			$v['recipe_lines'] = (int) $r['line_count'];
 			unset($v);
 		}
+		// HPP manual (bila diisi) menggantikan HPP dari resep.
+		foreach ($this->db->select('id, cogs_manual')->where_in('id', $variant_ids)->where('cogs_manual IS NOT NULL', NULL, FALSE)->get('menu_variants')->result_array() as $m)
+		{
+			$out[$m['id']]['cogs_manual'] = round((float) $m['cogs_manual'], 2);
+		}
 		foreach ($out as &$v)
 		{
-			if ($v['price'] > 0 && $v['recipe_lines'] > 0)
+			$v['cogs_recipe'] = $v['cogs'];
+			if ($v['cogs_manual'] !== NULL)
+			{
+				$v['cogs'] = $v['cogs_manual'];
+				$v['cogs_source'] = 'manual';
+			}
+			elseif ($v['recipe_lines'] > 0)
+			{
+				$v['cogs_source'] = 'resep';
+			}
+			$v['has_cogs'] = $v['cogs_source'] !== NULL;
+			if ($v['price'] > 0 && $v['has_cogs'])
 			{
 				$v['margin_pct'] = round(($v['price'] - $v['cogs']) / $v['price'] * 100, 1);
 			}
@@ -352,6 +369,30 @@ class Menu_service {
 	 * Simpan COGS & harga hari ini ke riwayat (PRD: "Track COGS history").
 	 * Dipanggil setelah resep/harga berubah, dan sekali sehari saat daftar menu dibuka.
 	 */
+	/**
+	 * HPP manual per porsi. NULL = kembali memakai HPP dari resep.
+	 * @return array ['old' => float|null, 'new' => float|null]
+	 */
+	public function set_manual_cogs($variant_id, $value, $note = '')
+	{
+		$v = $this->db->select('id, cogs_manual')->where('id', (int) $variant_id)->get('menu_variants')->row_array();
+		if ( ! $v)
+		{
+			throw new Menu_exception('Varian tidak ditemukan.');
+		}
+		if ($value !== NULL && ( ! is_numeric($value) OR $value < 0))
+		{
+			throw new Menu_exception('HPP manual harus angka 0 atau lebih.');
+		}
+		$this->db->where('id', $v['id'])->update('menu_variants', array(
+			'cogs_manual'      => $value === NULL ? NULL : round((float) $value, 2),
+			'cogs_manual_note' => $value === NULL ? NULL : (mb_substr(trim((string) $note), 0, 255) ?: NULL),
+			'cogs_manual_by'   => $value === NULL ? NULL : $this->_uid(),
+			'cogs_manual_at'   => $value === NULL ? NULL : date('Y-m-d H:i:s'),
+		));
+		return array('old' => $v['cogs_manual'] !== NULL ? (float) $v['cogs_manual'] : NULL, 'new' => $value === NULL ? NULL : round((float) $value, 2));
+	}
+
 	public function snapshot_cogs(array $variant_ids = NULL)
 	{
 		if ($variant_ids === NULL)

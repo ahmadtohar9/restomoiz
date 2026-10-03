@@ -64,7 +64,7 @@ $can_cogs = can('menu.view_cogs');
 					<?php if ($can_price): ?><td class="text-end"><?= $i && $i['price'] !== NULL ? rupiah($i['price']) : '-' ?>
 						<?php if ($i && $i['next_price'] !== NULL): ?><div class="small text-info" title="Berlaku <?= e(tgl($i['next_from'])) ?>">→ <?= rupiah($i['next_price']) ?></div><?php endif; ?></td><?php endif; ?>
 					<?php if ($can_cogs): ?>
-						<td class="text-end small"><?= $i && $i['recipe_lines'] ? rupiah($i['cogs']) : '<span class="text-muted">belum ada resep</span>' ?><?= $i && $i['missing_cost'] ? ' <i class="bi bi-exclamation-circle text-warning" title="Ada bahan tanpa harga"></i>' : '' ?></td>
+						<td class="text-end small"><?= $i && $i['has_cogs'] ? rupiah($i['cogs']) . ($i['cogs_source'] === 'manual' ? ' <span class="badge text-bg-warning" title="HPP diisi manual">M</span>' : '') : '<span class="text-muted">belum ada resep</span>' ?><?= $i && $i['missing_cost'] && $i['cogs_source'] === 'resep' ? ' <i class="bi bi-exclamation-circle text-warning" title="Ada bahan tanpa harga"></i>' : '' ?></td>
 						<td class="text-end small <?= $i && $i['margin_pct'] !== NULL && $i['margin_pct'] < $warn ? 'text-danger fw-medium' : '' ?>"><?= $i && $i['margin_pct'] !== NULL ? number_format($i['margin_pct'], 1, ',', '.') . '%' : '-' ?></td>
 					<?php endif; ?>
 					<td><?php if ($v): $a = Menu_service::availability($m['status'], $v['is_active'], $i['portions']); $portions = $i['portions']; include __DIR__ . '/_avail.php'; endif; ?></td>

@@ -58,12 +58,48 @@ $can_recipe = can_any(array('menu.view_recipe', 'menu.view_cogs'));
 					<?php if ($i['bulk_min_qty']): ?><div class="small">Grosir ≥ <?= (int) $i['bulk_min_qty'] ?>: <?= rupiah($i['bulk_price']) ?></div><?php endif; ?>
 					<?php if ($i['next_price'] !== NULL): ?><div class="small text-info">Terjadwal <?= rupiah($i['next_price']) ?> mulai <?= tgl($i['next_from']) ?></div><?php endif; ?>
 				<?php endif; ?>
-				<?php if ($can_cogs && $i['recipe_lines']): ?>
+				<?php $can_edit_cogs = $can_cogs && can('menu.edit'); ?>
+				<?php if ($can_cogs && ($i['has_cogs'] OR $can_edit_cogs)): ?>
 					<hr>
-					<div class="d-flex justify-content-between small"><span>COGS / porsi</span><strong><?= rupiah($i['cogs']) ?></strong></div>
-					<div class="d-flex justify-content-between small"><span>Laba kotor</span><span><?= rupiah($i['price'] - $i['cogs']) ?></span></div>
-					<div class="d-flex justify-content-between small"><span>Margin</span><strong class="<?= $i['margin_pct'] !== NULL && $i['margin_pct'] < $warn ? 'text-danger' : 'text-success' ?>"><?= $i['margin_pct'] !== NULL ? number_format($i['margin_pct'], 1, ',', '.') . '%' : '-' ?></strong></div>
-					<?php if ($i['missing_cost']): ?><div class="small text-warning-emphasis mt-1"><i class="bi bi-exclamation-circle"></i> <?= (int) $i['missing_cost'] ?> bahan belum punya harga, COGS belum lengkap.</div><?php endif; ?>
+					<div class="d-flex justify-content-between align-items-center small">
+						<span>HPP / porsi
+							<?php if ($i['cogs_source'] === 'manual'): ?><span class="badge text-bg-warning ms-1" title="Diisi manual">Manual</span>
+							<?php elseif ($i['cogs_source'] === 'resep'): ?><span class="badge text-bg-light border ms-1" title="Dihitung dari resep × harga beli terakhir">Resep</span><?php endif; ?>
+						</span>
+						<strong><?= $i['has_cogs'] ? rupiah($i['cogs']) : '<span class="text-muted fw-normal">belum ada</span>' ?></strong>
+					</div>
+					<?php if ($i['cogs_source'] === 'manual' && $i['recipe_lines']): ?>
+						<div class="d-flex justify-content-between small text-muted"><span>HPP dari resep</span><span><?= rupiah($i['cogs_recipe']) ?></span></div>
+					<?php endif; ?>
+					<?php if ($i['cogs_source'] === 'manual' && $v['cogs_manual_note']): ?><div class="small text-muted fst-italic"><?= e($v['cogs_manual_note']) ?></div><?php endif; ?>
+					<?php if ($i['has_cogs']): ?>
+						<div class="d-flex justify-content-between small"><span>Laba kotor</span><span><?= rupiah($i['price'] - $i['cogs']) ?></span></div>
+						<div class="d-flex justify-content-between small"><span>Margin</span><strong class="<?= $i['margin_pct'] !== NULL && $i['margin_pct'] < $warn ? 'text-danger' : 'text-success' ?>"><?= $i['margin_pct'] !== NULL ? number_format($i['margin_pct'], 1, ',', '.') . '%' : '-' ?></strong></div>
+					<?php endif; ?>
+					<?php if ($i['missing_cost'] && $i['cogs_source'] === 'resep'): ?><div class="small text-warning-emphasis mt-1"><i class="bi bi-exclamation-circle"></i> <?= (int) $i['missing_cost'] ?> bahan belum punya harga, HPP belum lengkap.</div><?php endif; ?>
+					<?php if ($can_edit_cogs): ?>
+						<button type="button" class="btn btn-sm btn-outline-secondary w-100 mt-2" data-modal-template="#tpl-cogs-<?= $v['id'] ?>" data-modal-title="HPP <?= e($m['name'] . ($v['name'] !== 'Reguler' ? ' - ' . $v['name'] : '')) ?>"
+							data-fill="<?= e(json_encode(array('mode' => $i['cogs_source'] === 'manual' ? 'manual' : 'resep', 'cogs_manual' => $i['cogs_manual'] !== NULL ? (string) $i['cogs_manual'] : ($i['recipe_lines'] ? (string) $i['cogs_recipe'] : ''), 'note' => (string) $v['cogs_manual_note']))) ?>"><i class="bi bi-pencil-square"></i> Ubah HPP</button>
+						<template id="tpl-cogs-<?= $v['id'] ?>" data-icon="calculator">
+							<?= form_open('menu/items/cogs/' . $v['id']) ?>
+								<div class="form-check p-3 border rounded-3 mb-2">
+									<input class="form-check-input ms-0 me-2" type="radio" name="mode" value="resep" id="cm-r-<?= $v['id'] ?>" <?= $i['recipe_lines'] ? '' : 'disabled' ?>>
+									<label class="form-check-label" for="cm-r-<?= $v['id'] ?>"><strong>Pakai HPP dari resep</strong>
+										<span class="d-block small text-muted"><?= $i['recipe_lines'] ? 'Otomatis dari resep × harga beli terakhir: <strong>' . rupiah($i['cogs_recipe']) . '</strong> per porsi' : 'Resep belum diisi.' ?></span></label>
+								</div>
+								<div class="form-check p-3 border rounded-3">
+									<input class="form-check-input ms-0 me-2" type="radio" name="mode" value="manual" id="cm-m-<?= $v['id'] ?>">
+									<label class="form-check-label" for="cm-m-<?= $v['id'] ?>"><strong>Input HPP manual</strong>
+										<span class="d-block small text-muted">Dipakai untuk analisis margin & HPP transaksi. Stok tetap dipotong sesuai resep.</span></label>
+									<div class="row g-2 mt-1 cm-manual">
+										<div class="col-sm-6"><div class="input-group"><span class="input-group-text">Rp</span><input class="form-control" type="number" min="0" step="any" name="cogs_manual" placeholder="per porsi" aria-label="HPP manual per porsi"></div></div>
+										<div class="col-sm-6"><input class="form-control" name="note" maxlength="255" placeholder="Alasan (opsional)" aria-label="Alasan"></div>
+									</div>
+								</div>
+								<div class="ui-actions"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> Simpan HPP</button></div>
+							<?= form_close() ?>
+						</template>
+					<?php endif; ?>
 				<?php endif; ?>
 			</div>
 			<?php endif; ?>
@@ -113,3 +149,16 @@ $can_recipe = can_any(array('menu.view_recipe', 'menu.view_cogs'));
 	</div>
 </div>
 <?php endforeach; ?>
+
+<script>
+(function () {
+	function sync(form) {
+		var manual = form.querySelector('input[name=mode][value=manual]');
+		if (!manual) return;
+		form.querySelectorAll('.cm-manual input').forEach(function (i) { i.disabled = !manual.checked; });
+		if (manual.checked) { var c = form.querySelector('input[name=cogs_manual]'); c.required = true; } else { form.querySelector('input[name=cogs_manual]').required = false; }
+	}
+	document.addEventListener('ui:fragment', function (e) { var f = e.detail.querySelector('form'); if (f && f.querySelector('input[name=mode]')) sync(f); });
+	document.addEventListener('change', function (e) { if (e.target.name === 'mode') sync(e.target.form); });
+})();
+</script>

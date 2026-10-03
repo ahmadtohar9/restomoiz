@@ -156,6 +156,23 @@ class Items extends MY_Controller {
 			return array('ingredient_id' => $r['ingredient_id'], 'qty' => (float) $r['qty'], 'unit' => $r['unit'], 'notes' => (string) $r['notes']);
 		}, $this->Menu_model->recipe($variant['id']));
 
+		// Satuan yang sudah tersimpan di resep (milik varian ini & saudaranya) tetap bisa dipilih
+		// walau satuan alternatif itu sudah dihapus dari bahan. Tanpa ini, form diam-diam beralih
+		// ke satuan standar (mis. 5 gram jadi 5 kg) dan menyimpan jumlah yang salah.
+		$recipe_variants = array_merge(array((int) $variant['id']), array_map('intval', array_column($siblings, 'id')));
+		foreach ($this->db->select('ingredient_id, unit, factor')->where_in('variant_id', $recipe_variants)->get('menu_recipes')->result_array() as $saved)
+		{
+			if ( ! isset($ingredients[$saved['ingredient_id']]))
+			{
+				continue;
+			}
+			$known = array_column($ingredients[$saved['ingredient_id']]['units'], 'unit');
+			if ( ! in_array($saved['unit'], $known, TRUE))
+			{
+				$ingredients[$saved['ingredient_id']]['units'][] = array('unit' => $saved['unit'], 'factor' => (float) $saved['factor']);
+			}
+		}
+
 		$copied = FALSE;
 		if ($this->input->get('copy_from') && $this->input->method() !== 'post')
 		{
@@ -227,7 +244,9 @@ class Items extends MY_Controller {
 					$info = $this->menu_service->variant_info(array($variant['id']));
 					$this->audit->log('menu_recipe_update', array('table_name' => 'menu_recipes', 'record_id' => $variant['id'],
 						'detail' => array('menu' => $variant['menu_name'], 'variant' => $variant['name'], 'lines' => count($prepared), 'cogs' => $info[$variant['id']]['cogs'])));
-					flash('success', 'Resep disimpan. COGS per porsi: ' . rupiah($info[$variant['id']]['cogs']) . '.');
+					$vi = $info[$variant['id']];
+					flash('success', 'Resep disimpan. HPP dari resep: ' . rupiah($vi['cogs_recipe']) . ' per porsi'
+						. ($vi['cogs_manual'] !== NULL ? ' (yang dipakai tetap HPP manual ' . rupiah($vi['cogs_manual']) . ').' : '.'));
 					redirect('menu/items/show/' . $variant['menu_id'] . '#v' . $variant['id']);
 				}
 				catch (Menu_exception $e)
@@ -249,9 +268,107 @@ class Items extends MY_Controller {
 			'ingredients' => $ingredients,
 			'siblings'    => $siblings,
 			'price'       => $info[$variant['id']]['price'],
+			'cogs_manual' => $info[$variant['id']]['cogs_manual'],
 			'copied'      => $copied,
 			'errors'      => $errors,
 		));
+	}
+
+	/**
+	 * HPP manual per porsi untuk satu varian. Kosong / mode "resep" = kembali ke HPP dari resep.
+	 * POST: mode (resep|manual), cogs_manual, note
+	 */
+	public function cogs($variant_id = NULL)
+	{
+		$this->require_permission('menu.edit');
+		$this->require_permission('menu.view_cogs');
+		if ($this->input->method() !== 'post')
+		{
+			show_error('Method not allowed', 405);
+		}
+		$variant = $this->Menu_model->find_variant($variant_id);
+		if ( ! $variant)
+		{
+			show_404();
+		}
+		$back = 'menu/items/show/' . $variant['menu_id'] . '#v' . $variant['id'];
+		$manual = $this->input->post('mode') === 'manual';
+		$value = NULL;
+		if ($manual)
+		{
+			$value = num_in($this->input->post('cogs_manual'), NAN);
+			if (is_nan($value) OR $value < 0)
+			{
+				flash('danger', 'HPP manual harus diisi angka 0 atau lebih.');
+				redirect($back);
+			}
+		}
+		try
+		{
+			$res = $this->menu_service->run(function ($svc) use ($variant, $value) {
+				$r = $svc->set_manual_cogs($variant['id'], $value, (string) $this->input->post('note'));
+				$svc->snapshot_cogs(array($variant['id']));
+				return $r;
+			});
+			$label = $variant['menu_name'] . ($variant['name'] !== 'Reguler' ? ' - ' . $variant['name'] : '');
+			$this->audit->log('menu_cogs_manual', array('table_name' => 'menu_variants', 'record_id' => $variant['id'],
+				'detail' => array('menu' => $label, 'old' => $res['old'], 'new' => $res['new'], 'note' => (string) $this->input->post('note'))));
+			flash('success', $value === NULL ? "HPP $label kembali dihitung dari resep." : "HPP manual $label disimpan: " . rupiah($value) . ' per porsi.');
+		}
+		catch (Menu_exception $e)
+		{
+			flash('danger', $e->getMessage());
+		}
+		redirect($back);
+	}
+
+	/**
+	 * Tambah satuan alternatif bahan langsung dari halaman resep (mis. jeruk: 1 buah = 0,15 kg).
+	 * POST ingredient_id, unit, factor (jumlah satuan standar per 1 satuan baru). Balas JSON daftar satuan.
+	 */
+	public function add_unit()
+	{
+		$this->require_permission('menu.edit');
+		if ($this->input->method() !== 'post')
+		{
+			show_error('Method not allowed', 405);
+		}
+		$ing = $this->db->select('id, name, unit')->where('id', (int) $this->input->post('ingredient_id'))->get('ingredients')->row_array();
+		$unit = trim((string) $this->input->post('unit'));
+		$factor = num_in(str_replace(',', '.', (string) $this->input->post('factor')), NAN); // terima 0,15 maupun 0.15
+		$error = NULL;
+		if ( ! $ing)
+		{
+			$error = 'Bahan tidak ditemukan.';
+		}
+		elseif ($unit === '' OR mb_strlen($unit) > 20)
+		{
+			$error = 'Nama satuan wajib diisi (maks. 20 karakter).';
+		}
+		elseif (mb_strtolower($unit) === mb_strtolower($ing['unit']))
+		{
+			$error = "\"$unit\" sudah menjadi satuan standar {$ing['name']}.";
+		}
+		elseif (is_nan($factor) OR $factor <= 0)
+		{
+			$error = 'Isi konversi: 1 ' . $unit . ' = berapa ' . $ing['unit'] . ' (harus lebih dari 0).';
+		}
+		elseif ($this->db->where('ingredient_id', $ing['id'])->where('unit', $unit)->count_all_results('ingredient_units'))
+		{
+			$error = "Satuan \"$unit\" sudah ada untuk {$ing['name']}.";
+		}
+		if ($error !== NULL)
+		{
+			$this->output->set_status_header(422);
+			return $this->_json(array('ok' => FALSE, 'message' => $error));
+		}
+		$this->db->insert('ingredient_units', array('ingredient_id' => $ing['id'], 'unit' => $unit, 'factor' => round($factor, 6)));
+		$this->audit->log('ingredient_unit_add', array('table_name' => 'ingredient_units', 'record_id' => $ing['id'],
+			'detail' => array('ingredient' => $ing['name'], 'unit' => $unit, 'factor' => $factor, 'std_unit' => $ing['unit'], 'from' => 'resep')));
+		$this->load->model('Ingredient_model');
+		$all = $this->Ingredient_model->for_stock_form();
+		return $this->_json(array('ok' => TRUE, 'unit' => $unit, 'units' => isset($all[$ing['id']]) ? $all[$ing['id']]['units'] : array(),
+			'message' => "Satuan $unit ditambahkan: 1 $unit = " . rtrim(rtrim(number_format($factor, 6, ',', '.'), '0'), ',') . ' ' . $ing['unit'] . '.'));
 	}
 
 	/** Ubah harga (langsung atau terjadwal) dengan alasan (PRD 2.3.3). */

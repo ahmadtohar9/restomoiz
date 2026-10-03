@@ -347,6 +347,21 @@ class Pos_service {
 					$short = TRUE;
 				}
 			}
+			// HPP manual varian (bila diisi) menggantikan biaya bahan resep; stok tetap dipotong sesuai resep.
+			// Biaya bahan tambahan (topping) tetap ikut, dihitung dari harga beli terakhir.
+			$manual = $this->db->select('cogs_manual')->where('id', $it['variant_id'])->get('menu_variants')->row();
+			if ($manual && $manual->cogs_manual !== NULL)
+			{
+				$cogs = (float) $manual->cogs_manual * $it['qty'];
+				foreach ($it['modifiers'] as $m)
+				{
+					if ($m['ingredient_id'] && (float) $m['qty_std'] > 0)
+					{
+						$price = (float) $this->db->select('current_price')->where('id', $m['ingredient_id'])->get('ingredients')->row()->current_price;
+						$cogs += (float) $m['qty_std'] * $it['qty'] * $price;
+					}
+				}
+			}
 			$this->db->where('id', $item_id)->update('order_items', array('cogs' => round($cogs, 2), 'stock_shortage' => $short ? 1 : 0));
 		}
 		$this->_refresh_open_totals($order_id);

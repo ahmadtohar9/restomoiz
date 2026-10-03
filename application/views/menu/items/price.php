@@ -9,7 +9,7 @@ $now = date('Y-m-d H:i:s');
 		<?= form_open('menu/items/price/' . $variant['id'], array('class' => 'card')) ?>
 			<div class="card-body row g-3">
 				<div class="col-12 small text-muted">Harga saat ini: <strong><?= $cur['price'] !== NULL ? rupiah($cur['price']) : '-' ?></strong>
-					<?php if (can('menu.view_cogs') && $cur['recipe_lines']): ?> · COGS <?= rupiah($cur['cogs']) ?> · margin <?= $cur['margin_pct'] !== NULL ? number_format($cur['margin_pct'], 1, ',', '.') . '%' : '-' ?><?php endif; ?></div>
+					<?php if (can('menu.view_cogs') && $cur['has_cogs']): ?> · HPP<?= $cur['cogs_source'] === 'manual' ? ' (manual)' : '' ?> <?= rupiah($cur['cogs']) ?> · margin <?= $cur['margin_pct'] !== NULL ? number_format($cur['margin_pct'], 1, ',', '.') . '%' : '-' ?><?php endif; ?></div>
 				<div class="col-md-6">
 					<label class="form-label" for="price">Harga normal</label>
 					<div class="input-group"><span class="input-group-text">Rp</span><input class="form-control" type="number" min="0" step="any" id="price" name="price" value="<?= e($num($input['price'])) ?>" required

@@ -49,7 +49,7 @@ class Analysis extends MY_Controller {
 		$rows = array();
 		foreach ($info as $vid => $i)
 		{
-			if ($i['recipe_lines'] === 0 OR ! $i['price'])
+			if ( ! $i['has_cogs'] OR ! $i['price'])
 			{
 				continue;
 			}
@@ -64,7 +64,8 @@ class Analysis extends MY_Controller {
 				'cogs_change'=> $old !== NULL && $old > 0 ? ($i['cogs'] - $old) / $old * 100 : NULL,
 				// Harga minimal agar margin = target: cogs / (1 - target%)
 				'target_price' => $warn < 100 ? ceil($i['cogs'] / (1 - $warn / 100) / 100) * 100 : NULL,
-				'missing_cost' => $i['missing_cost'],
+				'missing_cost' => $i['cogs_source'] === 'resep' ? $i['missing_cost'] : 0,
+				'cogs_source'  => $i['cogs_source'],
 			);
 		}
 		usort($rows, function ($a, $b) { return $a['margin'] <=> $b['margin']; });
@@ -72,7 +73,7 @@ class Analysis extends MY_Controller {
 		$no_recipe = array();
 		foreach ($info as $vid => $i)
 		{
-			if ($i['recipe_lines'] === 0 && $meta[$vid]['variant']['is_active'] && $meta[$vid]['menu']['status'] !== 'inactive')
+			if ( ! $i['has_cogs'] && $meta[$vid]['variant']['is_active'] && $meta[$vid]['menu']['status'] !== 'inactive')
 			{
 				$no_recipe[] = $meta[$vid];
 			}
