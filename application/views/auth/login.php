@@ -4,12 +4,15 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
+	<meta name="theme-color" content="#0a192f">
+	<link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg') ?>">
 	<title>Login · Resto Moiz</title>
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/inter/inter.css') ?>">
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/app.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/buttons.css') ?>">
+	<link rel="stylesheet" href="<?= asset_v('assets/css/theme-futuristic.css') ?>">
 </head>
 <body class="login-page">
 	<div class="tw-w-full tw-max-w-[420px]">

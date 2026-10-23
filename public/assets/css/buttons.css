@@ -21,13 +21,13 @@
  *  Warna diatur di variabel di bawah; ubah di sini saja bila ingin ganti warna.
  */
 :root {
-	--btn-save: #4f46e5;      --btn-save-hover: #4338ca;      --btn-save-active: #3730a3;
-	--btn-edit: #0369a1;      --btn-edit-hover: #075985;      --btn-edit-active: #0c4a6e;
-	--btn-delete: #dc2626;    --btn-delete-hover: #b91c1c;    --btn-delete-active: #991b1b;
-	--btn-neutral: #64748b;   --btn-neutral-hover: #475569;   --btn-neutral-active: #334155;
-	--btn-warn: #c2410c;      --btn-warn-hover: #9a3412;      --btn-warn-active: #7c2d12;
-	--btn-text: #fff;
-	--btn-radius: .6rem;
+	--btn-save: #059669;      --btn-save-hover: #047857;      --btn-save-active: #065f46;
+	--btn-edit: #0284c7;      --btn-edit-hover: #0369a1;      --btn-edit-active: #075985;
+	--btn-delete: #e11d48;    --btn-delete-hover: #be123c;    --btn-delete-active: #9f1239;
+	--btn-neutral: #475569;   --btn-neutral-hover: #334155;   --btn-neutral-active: #1e293b;
+	--btn-warn: #d97706;      --btn-warn-hover: #b45309;      --btn-warn-active: #92400e;
+	--btn-text: #ffffff;
+	--btn-radius: .75rem;
 }
 
 /* ---------- Dasar semua tombol ---------- */
@@ -86,8 +86,16 @@
 	color: var(--btn-text);
 	background-color: var(--c);
 	border-color: var(--c);
-	background-image: none;
-	box-shadow: 0 1px 2px rgba(15, 23, 42, .12);
+	background-image: linear-gradient(180deg, rgba(255, 255, 255, .12) 0%, rgba(0, 0, 0, .06) 100%);
+	box-shadow: 0 4px 12px -2px rgba(15, 23, 42, .18), 0 2px 4px -1px rgba(0, 0, 0, .06), inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+.btn:hover {
+	transform: translateY(-1.5px);
+	box-shadow: 0 8px 20px -3px rgba(15, 23, 42, .25), 0 3px 6px -2px rgba(0, 0, 0, .08), inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+.btn:active {
+	transform: translateY(1px) scale(.98);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, .15), inset 0 2px 4px rgba(0, 0, 0, .2);
 }
 .btn-save:hover, .btn-edit:hover, .btn-delete:hover, .btn-neutral:hover, .btn-warn:hover,
 .btn-primary:hover, .btn-success:hover, .btn-info:hover, .btn-danger:hover, .btn-warning:hover, .btn-secondary:hover, .btn-light:hover, .btn-dark:hover,
@@ -116,8 +124,18 @@
 }
 
 /* ---------- POS: ikut standar ---------- */
-.btn-pay { background: var(--btn-save) !important; color: var(--btn-text) !important; box-shadow: 0 8px 20px -6px rgba(79, 70, 229, .55) !important; }
-.btn-pay:hover, .btn-pay:focus { background: var(--btn-save-hover) !important; filter: none !important; }
+.btn-pay {
+	background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+	color: var(--btn-text) !important;
+	border: 1px solid rgba(255, 255, 255, .25) !important;
+	box-shadow: 0 10px 25px -4px rgba(16, 185, 129, .5), inset 0 1px 0 rgba(255, 255, 255, .4) !important;
+	border-radius: .85rem !important;
+}
+.btn-pay:hover, .btn-pay:focus {
+	background: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
+	box-shadow: 0 14px 30px -4px rgba(16, 185, 129, .6), inset 0 1px 0 rgba(255, 255, 255, .5) !important;
+	filter: none !important;
+}
 .btn-kitchen { background: var(--btn-edit) !important; border-color: var(--btn-edit) !important; color: var(--btn-text) !important; }
 .btn-kitchen:hover { background: var(--btn-edit-hover) !important; border-color: var(--btn-edit-hover) !important; color: var(--btn-text) !important; }
 .pos-fab-act { background: var(--btn-save) !important; color: var(--btn-text) !important; }

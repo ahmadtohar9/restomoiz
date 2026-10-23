@@ -6,12 +6,15 @@ $CI =& get_instance();
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
+	<meta name="theme-color" content="#0a192f">
+	<link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg') ?>">
 	<title>POS · <?= e($resto) ?></title>
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/inter/inter.css') ?>">
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/app.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/buttons.css') ?>">
+	<link rel="stylesheet" href="<?= asset_v('assets/css/theme-futuristic.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/pos.css') ?>">
 </head>
 <?php $ini = strtoupper(implode('', array_map(function ($w) { return mb_substr($w, 0, 1); }, array_slice(preg_split('/\s+/', trim($current_user['name'])), 0, 2)))); ?>

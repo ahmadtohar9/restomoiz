@@ -104,6 +104,8 @@ $role_label = implode(', ', $current_user['role_names']) ?: 'Tanpa role';
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
+	<meta name="theme-color" content="#0a192f">
+	<link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg') ?>">
 	<title><?= e(isset($title) ? $title . ' · ' : '') ?>Resto Moiz</title>
 	<script>try { var sb = localStorage.getItem('rm.sbCollapsed'); if (sb === '1' || (sb === null && innerWidth >= 992 && innerWidth < 1280)) document.documentElement.classList.add('sb-collapsed'); } catch (e) {}</script>
 	<link rel="stylesheet" href="<?= base_url('assets/vendor/inter/inter.css') ?>">
@@ -112,6 +114,7 @@ $role_label = implode(', ', $current_user['role_names']) ?: 'Tanpa role';
 	<link rel="stylesheet" href="<?= asset_v('assets/vendor/datatables/datatables.min.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/app.css') ?>">
 	<link rel="stylesheet" href="<?= asset_v('assets/css/buttons.css') ?>">
+	<link rel="stylesheet" href="<?= asset_v('assets/css/theme-futuristic.css') ?>">
 </head>
 <body data-dt-auto="<?= $dt_auto ? 1 : 0 ?>">
 <div class="app">
