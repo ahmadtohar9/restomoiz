@@ -3,80 +3,69 @@ $flash = $this->session->flashdata('flash');
 $nav = array(
 	array('label' => 'Dashboard', 'icon' => 'speedometer2', 'url' => 'dashboard', 'perm' => NULL),
 );
-$inventory_nav = array(
-	array('label' => 'Bahan Baku', 'icon' => 'box-seam', 'url' => 'inventory/ingredients', 'perm' => NULL),
-	array('label' => 'Stok Masuk', 'icon' => 'box-arrow-in-down', 'url' => 'inventory/stock/in', 'perm' => 'inventory.adjust'),
-	array('label' => 'Stok Keluar', 'icon' => 'box-arrow-up', 'url' => 'inventory/stock/out', 'perm' => 'inventory.adjust'),
-	array('label' => 'Stock Opname', 'icon' => 'clipboard-check', 'url' => 'inventory/opname', 'perm' => NULL),
-	array('label' => 'Riwayat Stok', 'icon' => 'clock-history', 'url' => 'inventory/stock/movements', 'perm' => NULL),
-	array('label' => 'Peringatan Stok', 'icon' => 'exclamation-triangle', 'url' => 'inventory/stock/alerts', 'perm' => NULL),
-	array('label' => 'Supplier', 'icon' => 'truck', 'url' => 'inventory/suppliers', 'perm' => NULL),
-	array('label' => 'Kategori Bahan', 'icon' => 'diagram-3', 'url' => 'inventory/categories', 'perm' => NULL),
-	array('label' => 'Laporan Inventory', 'icon' => 'bar-chart-line', 'url' => 'inventory/reports', 'perm' => 'report.inventory'),
-);
-$purchase_nav = array(
-	array('label' => 'Purchase Order', 'icon' => 'cart3', 'url' => 'purchase/orders', 'perm' => NULL),
-	array('label' => 'Penerimaan Barang', 'icon' => 'truck', 'url' => 'purchase/receipts', 'perm' => NULL),
-	array('label' => 'Invoice Supplier', 'icon' => 'receipt', 'url' => 'purchase/invoices', 'perm' => NULL),
-	array('label' => 'Pembayaran', 'icon' => 'credit-card', 'url' => 'purchase/payments', 'perm' => NULL),
-	array('label' => 'Laporan Pembelian', 'icon' => 'graph-up', 'url' => 'purchase/reports', 'perm' => 'report.inventory'),
-);
-$menu_nav = array(
-	array('label' => 'Daftar Menu', 'icon' => 'journal-richtext', 'url' => 'menu/items', 'perm' => NULL),
-	array('label' => 'Kategori Menu', 'icon' => 'diagram-3', 'url' => 'menu/categories', 'perm' => NULL),
-	array('label' => 'Promo', 'icon' => 'percent', 'url' => 'menu/promos', 'perm' => 'menu.view'),
-	array('label' => 'Simulator Promo', 'icon' => 'calculator', 'url' => 'menu/promos/simulator', 'perm' => 'menu.view'),
-	array('label' => 'Tambahan & Topping', 'icon' => 'plus-circle', 'url' => 'menu/modifiers', 'perm' => 'menu.view'),
-	array('label' => 'Barcode & Label', 'icon' => 'upc-scan', 'url' => 'menu/labels', 'perm' => 'menu.view'),
-	array('label' => 'Analisis Margin', 'icon' => 'graph-up-arrow', 'url' => 'menu/analysis', 'perm' => 'menu.view_cogs'),
-);
+// === MODE KAFE SIMPEL (ALA LUNA POS) ===
+// Dikelompokkan rapi: Kasir & Meja, Menu & HPP, Bahan & Belanja, Keuangan & Laporan, serta Pengaturan
 $sales_nav = array(
 	array('label' => 'POS Kasir', 'icon' => 'cash-coin', 'url' => 'pos', 'any' => array('sales.process', 'sales.order')),
-	array('label' => 'Dapur', 'icon' => 'fire', 'url' => 'sales/kitchen', 'any' => array('sales.kitchen', 'sales.order', 'sales.process')),
-	array('label' => 'Transaksi', 'icon' => 'receipt', 'url' => 'sales/orders', 'any' => array('sales.process', 'sales.order', 'sales.edit_order', 'report.operational')),
-	array('label' => 'Meja', 'icon' => 'grid-3x3-gap', 'url' => 'sales/tables', 'any' => array('sales.process', 'sales.order', 'sales.edit_order')),
-	array('label' => 'Refund', 'icon' => 'arrow-counterclockwise', 'url' => 'sales/refunds', 'any' => array('sales.refund', 'sales.refund_approve', 'sales.refund_owner', 'report.operational', 'report.financial')),
+	array('label' => 'Pesanan Dapur & Bar', 'icon' => 'fire', 'url' => 'sales/kitchen', 'any' => array('sales.kitchen', 'sales.order', 'sales.process')),
+	array('label' => 'Riwayat Transaksi', 'icon' => 'receipt', 'url' => 'sales/orders', 'any' => array('sales.process', 'sales.order', 'sales.edit_order', 'report.operational')),
+	array('label' => 'Denah Meja', 'icon' => 'grid-3x3-gap', 'url' => 'sales/tables', 'any' => array('sales.process', 'sales.order', 'sales.edit_order')),
 	array('label' => 'Shift Kasir', 'icon' => 'clock-history', 'url' => 'sales/shifts', 'any' => array('sales.shift', 'sales.shift_approve', 'report.operational', 'report.own_shift')),
-	array('label' => 'Pelanggan', 'icon' => 'person-vcard', 'url' => 'sales/customers', 'any' => array('sales.process', 'sales.order', 'sales.edit_order')),
+	array('label' => 'Data Pelanggan', 'icon' => 'person-vcard', 'url' => 'sales/customers', 'any' => array('sales.process', 'sales.order', 'sales.edit_order')),
+	array('label' => 'Refund', 'icon' => 'arrow-counterclockwise', 'url' => 'sales/refunds', 'any' => array('sales.refund', 'sales.refund_approve', 'sales.refund_owner', 'report.operational', 'report.financial')),
 );
-$admin_nav = array(
-	array('label' => 'User', 'icon' => 'people', 'url' => 'admin/users', 'perm' => 'admin.users'),
-	array('label' => 'Role', 'icon' => 'person-badge', 'url' => 'admin/roles', 'perm' => 'admin.roles'),
-	array('label' => 'Permission Matrix', 'icon' => 'grid-3x3', 'url' => 'admin/roles/matrix', 'perm' => 'admin.roles'),
-	array('label' => 'Audit Log', 'icon' => 'journal-text', 'url' => 'admin/audit', 'perm' => 'admin.audit'),
-	array('label' => 'Pengaturan', 'icon' => 'gear', 'url' => 'admin/settings', 'perm' => 'admin.settings'),
-	array('label' => 'Go-Live Checklist', 'icon' => 'rocket-takeoff', 'url' => 'admin/golive', 'perm' => 'admin.settings'),
+
+$menu_nav = array(
+	array('label' => 'Daftar Menu & Harga', 'icon' => 'journal-richtext', 'url' => 'menu/items', 'perm' => NULL),
+	array('label' => 'Kategori Menu', 'icon' => 'diagram-3', 'url' => 'menu/categories', 'perm' => NULL),
+	array('label' => 'Hitungan HPP & Margin', 'icon' => 'graph-up-arrow', 'url' => 'menu/analysis', 'perm' => 'menu.view_cogs'),
+	array('label' => 'Topping / Modifiers', 'icon' => 'plus-circle', 'url' => 'menu/modifiers', 'perm' => 'menu.view'),
+	array('label' => 'Promo & Diskon', 'icon' => 'percent', 'url' => 'menu/promos', 'perm' => 'menu.view'),
 );
+
+$inventory_nav = array(
+	array('label' => 'Stok Bahan Baku', 'icon' => 'box-seam', 'url' => 'inventory/ingredients', 'perm' => NULL),
+	array('label' => 'Belanja / Stok Masuk', 'icon' => 'box-arrow-in-down', 'url' => 'inventory/stock/in', 'perm' => 'inventory.adjust'),
+	array('label' => 'Stok Keluar / Terbuang', 'icon' => 'box-arrow-up', 'url' => 'inventory/stock/out', 'perm' => 'inventory.adjust'),
+	array('label' => 'Peringatan Stok Habis', 'icon' => 'exclamation-triangle', 'url' => 'inventory/stock/alerts', 'perm' => NULL),
+	array('label' => 'Stock Opname', 'icon' => 'clipboard-check', 'url' => 'inventory/opname', 'perm' => NULL),
+	array('label' => 'Supplier', 'icon' => 'truck', 'url' => 'inventory/suppliers', 'perm' => NULL),
+);
+
 $finance_nav = array(
-	array('label' => 'Settlement Harian', 'icon' => 'journal-check', 'url' => 'finance/settlements', 'perm' => 'payment.reconcile'),
-	array('label' => 'Rekonsiliasi Bank', 'icon' => 'bank', 'url' => 'finance/reconciliations', 'perm' => 'payment.reconcile'),
-	array('label' => 'Pengeluaran', 'icon' => 'wallet2', 'url' => 'finance/expenses', 'perm' => 'finance.expense'),
-);
-$report_nav = array(
+	array('label' => 'Laporan Pendapatan & Omset', 'icon' => 'bar-chart', 'url' => 'reports/sales', 'perm' => NULL),
+	array('label' => 'Laba Rugi (HPP vs Omset)', 'icon' => 'file-earmark-bar-graph', 'url' => 'reports/pnl', 'perm' => 'report.financial'),
+	array('label' => 'Pengeluaran Kafe (Biaya)', 'icon' => 'wallet2', 'url' => 'finance/expenses', 'perm' => 'finance.expense'),
 	array('label' => 'Dashboard Eksekutif', 'icon' => 'speedometer', 'url' => 'reports', 'perm' => NULL, 'match' => '#^reports$#'),
-	array('label' => 'Penjualan', 'icon' => 'bar-chart', 'url' => 'reports/sales', 'perm' => NULL),
-	array('label' => 'Laba Rugi', 'icon' => 'file-earmark-bar-graph', 'url' => 'reports/pnl', 'perm' => 'report.financial'),
 	array('label' => 'Kinerja Kasir', 'icon' => 'person-badge', 'url' => 'reports/cashiers', 'perm' => NULL),
-	array('label' => 'Analisis Refund', 'icon' => 'arrow-counterclockwise', 'url' => 'reports/refunds', 'perm' => NULL),
 );
-// Pencocokan khusus agar sub-halaman yang punya menu sendiri tidak ikut aktif.
+
+$advanced_nav = array(
+	array('label' => 'Pengaturan Resto & Struk', 'icon' => 'gear', 'url' => 'admin/settings', 'perm' => 'admin.settings'),
+	array('label' => 'User & Karyawan', 'icon' => 'people', 'url' => 'admin/users', 'perm' => 'admin.users'),
+	array('label' => 'Role & Hak Akses', 'icon' => 'person-badge', 'url' => 'admin/roles', 'perm' => 'admin.roles'),
+	array('label' => 'Purchase Order (PO)', 'icon' => 'cart3', 'url' => 'purchase/orders', 'perm' => 'purchase.view'),
+	array('label' => 'Invoice Supplier', 'icon' => 'receipt', 'url' => 'purchase/invoices', 'perm' => 'purchase.view'),
+	array('label' => 'Audit Log Sistem', 'icon' => 'journal-text', 'url' => 'admin/audit', 'perm' => 'admin.audit'),
+);
+
+// Sub-halaman pencocokan
 foreach ($menu_nav as &$item) { if ($item['url'] === 'menu/promos') $item['match'] = '#^menu/promos($|/(create|edit))#'; }
-foreach ($admin_nav as &$item) { if ($item['url'] === 'admin/roles') $item['match'] = '#^admin/roles($|/(create|edit))#'; }
+foreach ($advanced_nav as &$item) { if ($item['url'] === 'admin/roles') $item['match'] = '#^admin/roles($|/(create|edit))#'; }
 unset($item);
+
 if (can_any(array('menu.view', 'menu.view_recipe')) && setting('public_menu_enabled', '1') === '1')
 {
-	$menu_nav[] = array('label' => 'Menu Online', 'icon' => 'qr-code', 'url' => 'menu-online', 'perm' => NULL, 'external' => TRUE);
+	$menu_nav[] = array('label' => 'Buku Menu Digital (QR)', 'icon' => 'qr-code', 'url' => 'menu-online', 'perm' => NULL, 'external' => TRUE);
 }
 
 $groups = array(
 	array('key' => 'main', 'label' => 'Utama', 'show' => TRUE, 'items' => $nav),
-	array('key' => 'sales', 'label' => 'Penjualan', 'show' => TRUE, 'items' => $sales_nav),
-	array('key' => 'menu', 'label' => 'Menu', 'show' => can_any(array('menu.view', 'menu.view_recipe')), 'items' => $menu_nav),
-	array('key' => 'inventory', 'label' => 'Inventory', 'show' => can('inventory.view'), 'items' => $inventory_nav),
-	array('key' => 'purchase', 'label' => 'Pembelian', 'show' => can('purchase.view'), 'items' => $purchase_nav),
-	array('key' => 'finance', 'label' => 'Keuangan', 'show' => TRUE, 'items' => $finance_nav),
-	array('key' => 'reports', 'label' => 'Laporan', 'show' => can_any(array('report.operational', 'report.financial')), 'items' => $report_nav),
-	array('key' => 'admin', 'label' => 'Administrasi', 'show' => TRUE, 'items' => $admin_nav),
+	array('key' => 'sales', 'label' => 'Kasir & Pelayanan', 'show' => TRUE, 'items' => $sales_nav),
+	array('key' => 'menu', 'label' => 'Menu & HPP', 'show' => can_any(array('menu.view', 'menu.view_recipe')), 'items' => $menu_nav),
+	array('key' => 'inventory', 'label' => 'Bahan Baku & Stok', 'show' => can('inventory.view'), 'items' => $inventory_nav),
+	array('key' => 'finance', 'label' => 'Pendapatan & Laporan', 'show' => TRUE, 'items' => $finance_nav),
+	array('key' => 'advanced', 'label' => 'Pengaturan & Lanjutan', 'show' => can_any(array('admin.settings', 'admin.users', 'admin.roles', 'admin.audit', 'purchase.view')), 'items' => $advanced_nav),
 );
 $uri = uri_string();
 $crumb = '';

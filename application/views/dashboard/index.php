@@ -5,11 +5,12 @@ $hari = array('Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu');
 $first_name = strtok(trim($current_user['name']), ' ');
 
 $actions = array(
-	array('Buka POS', 'cash-coin', 'pos', can_any(array('sales.process', 'sales.order'))),
-	array('Stok Masuk', 'box-arrow-in-down', 'inventory/stock/in', can('inventory.adjust')),
-	array('Buat PO', 'cart-plus', 'purchase/orders/create', can('purchase.create')),
-	array('Daftar Menu', 'journal-richtext', 'menu/items', can('menu.view')),
-	array('Laporan', 'bar-chart-line', 'reports', can_any(array('report.operational', 'report.financial'))),
+	array('Buka POS Kasir', 'cash-coin', 'pos', can_any(array('sales.process', 'sales.order'))),
+	array('Belanja / Stok Masuk', 'box-arrow-in-down', 'inventory/stock/in', can('inventory.adjust')),
+	array('Daftar Menu & HPP', 'journal-richtext', 'menu/items', can('menu.view')),
+	array('Pesanan Dapur / Bar', 'fire', 'sales/kitchen', can_any(array('sales.kitchen', 'sales.order', 'sales.process'))),
+	array('Laba Rugi & HPP', 'file-earmark-bar-graph', 'reports/pnl', can('report.financial')),
+	array('Catat Biaya / Kas', 'wallet2', 'finance/expenses', can('finance.expense')),
 );
 $actions = array_filter($actions, function ($a) { return $a[3]; });
 
@@ -100,15 +101,15 @@ $can_orders = can_any(array('sales.process', 'sales.order', 'sales.edit_order', 
 	$avg = $st['tx'] ? $st['revenue'] / $st['tx'] : 0;
 	$avg_y = $sy['tx'] ? $sy['revenue'] / $sy['tx'] : 0;
 	$kpis = array(
-		array('Pendapatan hari ini', rupiah($st['revenue']), 'cash-coin', 'tw-bg-indigo-50 tw-text-indigo-600', $delta($st['revenue'], $sy['revenue'])),
-		array('Transaksi', number_format($st['tx'], 0, ',', '.'), 'receipt', 'tw-bg-sky-50 tw-text-sky-600', $delta($st['tx'], $sy['tx'], FALSE)),
-		array('Rata-rata bill', rupiah($avg), 'basket', 'tw-bg-amber-50 tw-text-amber-600', $st['tx'] && $sy['tx'] ? $delta($avg, $avg_y) : '<span class="text-muted">per transaksi</span>'),
+		array('Pendapatan Hari Ini', rupiah($st['revenue']), 'cash-coin', 'tw-bg-emerald-50 tw-text-emerald-600', $delta($st['revenue'], $sy['revenue'])),
+		array('Total Transaksi', number_format($st['tx'], 0, ',', '.') . ' Nota', 'receipt', 'tw-bg-sky-50 tw-text-sky-600', $delta($st['tx'], $sy['tx'], FALSE)),
+		array('Rata-rata Penjualan / Meja', rupiah($avg), 'basket', 'tw-bg-amber-50 tw-text-amber-600', $st['tx'] && $sy['tx'] ? $delta($avg, $avg_y) : '<span class="text-muted">per transaksi</span>'),
 	);
 	if (can('menu.view_cogs'))
 	{
 		$gp = $st['revenue'] - $st['cogs'];
-		$kpis[] = array('Laba kotor', rupiah($gp), 'graph-up-arrow', 'tw-bg-emerald-50 tw-text-emerald-600',
-			$st['revenue'] > 0 ? '<span class="text-muted">margin</span> <strong class="tw-text-slate-700">' . number_format($gp / $st['revenue'] * 100, 1, ',', '.') . '%</strong> <span class="text-muted">· sblm pajak</span>' : '<span class="text-muted">sebelum pajak</span>');
+		$kpis[] = array('Estimasi Laba Kotor', rupiah($gp), 'graph-up-arrow', 'tw-bg-emerald-50 tw-text-emerald-600',
+			$st['revenue'] > 0 ? '<span class="text-muted">Margin:</span> <strong class="tw-text-emerald-700">' . number_format($gp / $st['revenue'] * 100, 1, ',', '.') . '%</strong>' : '<span class="text-muted">HPP: ' . rupiah($st['cogs']) . '</span>');
 	}
 	else
 	{
